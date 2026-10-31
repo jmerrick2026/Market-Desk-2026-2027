@@ -117,6 +117,17 @@
   .featured li::before { content: ""; position: absolute; left: 0; top: 10px; width: 9px; height: 1px; background: var(--mist); }
   @media (max-width: 860px) { .feat-grid { grid-template-columns: 1fr; } .featured ul { grid-template-columns: 1fr; } .shot { transform: none; } }
 
+  /* Writing */
+  .writing { background: var(--paper); border-bottom: 1px solid var(--rule); }
+  .article { display: block; text-decoration: none; margin-top: 26px; padding: 34px 38px; background: var(--ivory); border: 1px solid var(--rule); border-left: 4px solid var(--brass); border-radius: 4px 16px 16px 4px; transition: transform .2s, box-shadow .2s; max-width: 860px; }
+  .article:hover { transform: translateY(-2px); box-shadow: 0 16px 40px rgba(31,39,49,.10); }
+  .article-meta { display: flex; gap: 18px; font: 600 12px var(--sans); letter-spacing: .16em; text-transform: uppercase; color: var(--brass); }
+  .article h3 { font: 600 clamp(28px, 3.2vw, 38px)/1.15 var(--serif); margin: 10px 0 12px; color: var(--ink); }
+  .article p { margin: 0 0 18px; color: #3a434d; font-size: 16.5px; max-width: 700px; }
+  .article-cta { font: 600 13px var(--sans); letter-spacing: .12em; text-transform: uppercase; color: var(--slate); border-bottom: 1px solid var(--slate); padding-bottom: 2px; }
+  .inline-link { text-decoration: none; border-bottom: 1px solid var(--brass); }
+  .inline-link:hover { color: var(--brass); }
+
   /* Honors */
   .honors-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0; margin-top: 30px; border-top: 1px solid var(--rule); }
   .honor { padding: 24px 22px 24px 0; border-bottom: 1px solid var(--rule); }
@@ -185,6 +196,7 @@
       <a href="#about">About</a>
       <a href="#experience">Experience</a>
       <a href="#work">Work</a>
+      <a href="#writing">Writing</a>
       <a href="#honors">Honors</a>
       <a href="#academics">Academics</a>
       <a href="#contact">Contact</a>
@@ -311,6 +323,20 @@
     </div>
   </section>
 
+  <!-- Writing -->
+  <section class="writing" id="writing">
+    <div class="wrap">
+      <p class="eyebrow reveal">Writing</p>
+      <h2 class="title reveal">In print</h2>
+      <a class="article reveal" href="https://breakthroughmiami.org/a-story-of-remembrance-and-rising-together/" target="_blank" rel="noopener">
+        <div class="article-meta"><span>Breakthrough Miami</span><span>June 6, 2025</span></div>
+        <h3>A Story of Remembrance and Rising Together</h3>
+        <p>How a car wash organized with players from rival water polo programs raised more than $6,000 for a scholarship honoring Lucas Osuna, a Belen Jesuit student-athlete, with community partners joining in and a check presentation planned for his memorial tournament.</p>
+        <span class="article-cta">Read the article ↗</span>
+      </a>
+    </div>
+  </section>
+
   <!-- Honors -->
   <section class="honors" id="honors">
     <div class="wrap">
@@ -342,7 +368,7 @@
           <li><b>Leadership Alliance, Founder and President</b><span>2024 – 2025</span></li>
           <li><b>Water Polo Team Captain</b><span>2023 – 2025</span></li>
           <li><b>Coconut Grove Food Pantry, Student Board of Directors</b><span>2025</span></li>
-          <li><b>Breakthrough Miami, Editorial Contributor</b><span>2023 – 2025</span></li>
+          <li><b><a href="https://breakthroughmiami.org/a-story-of-remembrance-and-rising-together/" target="_blank" rel="noopener" class="inline-link">Breakthrough Miami, Editorial Contributor</a></b><span>2023 – 2025</span></li>
         </ul>
       </div>
       <div class="reveal">
