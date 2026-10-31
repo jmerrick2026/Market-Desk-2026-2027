@@ -1,6 +1,6 @@
 # Market Monitor · MATH 621
 
-A daily market recap, three class portfolios, and auto-generated discussion questions for MATH 621: Quantitative Finance and AI at Ransom Everglades School. Prices come live from Yahoo Finance; the yield curve comes from the U.S. Treasury.
+A daily market recap, three class portfolios, and auto-generated discussion questions for MATH 621: Quantitative Finance and AI. Prices come live from Yahoo Finance; the yield curve comes from the U.S. Treasury.
 
 ## Pages
 

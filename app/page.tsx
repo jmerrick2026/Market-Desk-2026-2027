@@ -34,16 +34,19 @@ export default async function Markets() {
     <>
       <Header active="markets" />
       <main className="wrap">
-        <section className="lede">
-          <h1>{s.headline}</h1>
-          {s.body.map((b, i) => <p key={i}>{b}</p>)}
-        </section>
-
-        <section className="huddle card">
-          <h2>Huddle</h2>
-          <p className="muted small">Three questions to open class, written from today&apos;s numbers.</p>
-          <ol>{prompts.map((p, i) => <li key={i}>{p}</li>)}</ol>
-        </section>
+        <div className="front">
+          <article className="lede story">
+            <p className="kicker">The Session</p>
+            <h1>{s.headline}</h1>
+            <p className="deck">A desk read of the tape, written from the closing numbers.</p>
+            <div className="cols">{s.body.map((b, i) => <p key={i}>{b}</p>)}</div>
+          </article>
+          <aside className="huddle">
+            <p className="kicker">Huddle</p>
+            <h2>Three Questions to Open Class</h2>
+            <ol>{prompts.map((p, i) => <li key={i}>{p}</li>)}</ol>
+          </aside>
+        </div>
 
         <div className="grid2">
           <section className="card">

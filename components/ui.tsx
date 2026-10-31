@@ -27,27 +27,29 @@ export const usd = (v?: number, d = 0) => (v == null ? "n/a" : (v < 0 ? "-$" : "
 
 export function Header({ active }: { active: "markets" | "portfolios" | "closing" }) {
   const now = new Date();
-  const stamp = now.toLocaleString("en-US", { timeZone: "America/New_York", weekday: "long", month: "long", day: "numeric", year: "numeric", hour: "numeric", minute: "2-digit" });
+  const tz = { timeZone: "America/New_York" } as const;
+  const date = now.toLocaleDateString("en-US", { ...tz, weekday: "long", month: "long", day: "numeric", year: "numeric" });
+  const time = now.toLocaleTimeString("en-US", { ...tz, hour: "numeric", minute: "2-digit" });
+  // Issue number: days since the first edition (Sept. 1)
+  const issue = Math.max(1, Math.floor((+now - +new Date("2026-09-01T12:00:00Z")) / 864e5) + 1);
   return (
-    <header className="masthead">
-      <div className="bar">
-        <div className="wrap bar-inner">
-          <span>{SITE.school}</span>
-          <span>{SITE.course}</span>
-        </div>
+    <header className="masthead wrap">
+      <div className="ears">
+        <span>{SITE.course}</span>
+        <span>Late Edition · {time} ET</span>
       </div>
-      <div className="wrap">
-        <div className="brand">
-          <Link href="/" className="logo">{SITE.title}</Link>
-          <nav>
-            <Link className={active === "markets" ? "on" : ""} href="/">Markets</Link>
-            <Link className={active === "portfolios" ? "on" : ""} href="/portfolios">Portfolios</Link>
-            <Link className={active === "closing" ? "on" : ""} href="/closing-questions">Closing Questions</Link>
-          </nav>
-        </div>
-        <p className="stamp">{stamp} ET · {SITE.byline}</p>
-        {DEMO && <p className="demo">Demo mode: prices below are simulated. Remove the DEMO setting to show live data.</p>}
+      <Link href="/" className="nameplate">The {SITE.title}</Link>
+      <div className="dateline">
+        <span>Vol. I · No. {issue}</span>
+        <span>{date}</span>
+        <span>Edited by {SITE.byline}</span>
       </div>
+      <nav>
+        <Link className={active === "markets" ? "on" : ""} href="/">Markets</Link>
+        <Link className={active === "portfolios" ? "on" : ""} href="/portfolios">Portfolios</Link>
+        <Link className={active === "closing" ? "on" : ""} href="/closing-questions">Closing Questions</Link>
+      </nav>
+      {DEMO && <p className="demo">Demo mode: prices below are simulated. Remove the DEMO setting to show live data.</p>}
     </header>
   );
 }
@@ -56,7 +58,7 @@ export function Footer() {
   return (
     <footer className="wrap foot">
       <p>Prices: Yahoo Finance, delayed. Yield curve: U.S. Treasury daily par yields. Filings: SEC EDGAR. Pages refresh about once a minute.</p>
-      <p>Built for classroom use in {SITE.course} at {SITE.school}. Not investment advice.</p>
+      <p>Built for classroom use in {SITE.course}. Not investment advice.</p>
     </footer>
   );
 }

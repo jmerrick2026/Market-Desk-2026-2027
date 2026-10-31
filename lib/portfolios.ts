@@ -76,6 +76,5 @@ export const PORTFOLIOS: Portfolio[] = [
 export const SITE = {
   title: "Market Monitor",
   course: "MATH 621 · Quantitative Finance and AI",
-  school: "Ransom Everglades School",
   byline: "Jess Merrick & Rob Jaffee",
 };
