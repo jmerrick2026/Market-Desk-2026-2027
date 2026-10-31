@@ -1,0 +1,134 @@
+"use client";
+
+import { useEffect, useRef, useState } from "react";
+import type { Topic, QA } from "../lib/askjack";
+
+// Which topic each page section belongs to
+const SECTION_TOPIC: Record<string, string> = {
+  front: "front", macro: "macro", week: "week", markets: "markets", micro: "micro",
+  portfolios: "portfolios", map: "portfolios", "jack-merrick": "portfolios", class: "portfolios", dartboard: "portfolios",
+  risk: "risk", reports: "reports", closing: "front", puzzles: "puzzles",
+};
+const TINTS = ["lav", "pink", "lime"];
+
+type Msg = { role: "you" | "jack"; qa: QA };
+
+export default function AskJack({ topics, asOf }: { topics: Topic[]; asOf: string }) {
+  const [open, setOpen] = useState(false);
+  const [topicId, setTopicId] = useState("front");
+  const [msgs, setMsgs] = useState<Msg[]>([]);
+  const [typing, setTyping] = useState(false);
+  const bodyRef = useRef<HTMLDivElement>(null);
+
+  // Follow the reader: whichever section is on screen sets the topic
+  useEffect(() => {
+    const els = Object.keys(SECTION_TOPIC).map((id) => document.getElementById(id)).filter(Boolean) as HTMLElement[];
+    const io = new IntersectionObserver(
+      (entries) => {
+        const vis = entries.filter((e) => e.isIntersecting).sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top)[0];
+        if (vis) setTopicId(SECTION_TOPIC[vis.target.id] ?? "front");
+      },
+      { rootMargin: "-30% 0px -55% 0px" }
+    );
+    els.forEach((el) => io.observe(el));
+    return () => io.disconnect();
+  }, []);
+
+  // Keep the newest question and its answer in view (not the buttons below it)
+  useEffect(() => {
+    const body = bodyRef.current;
+    if (!body) return;
+    const qs = body.querySelectorAll<HTMLElement>(".aj-you");
+    const last = qs[qs.length - 1];
+    body.scrollTo({ top: last ? last.offsetTop - 12 : 0, behavior: "smooth" });
+  }, [msgs, typing]);
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") setOpen(false); };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [open]);
+
+  const topic = topics.find((t) => t.id === topicId) ?? topics[0];
+  const others = topics.filter((t) => t.id !== topic.id);
+
+  const ask = (qa: QA) => {
+    setMsgs((m) => [...m, { role: "you", qa }]);
+    setTyping(true);
+    setTimeout(() => { setTyping(false); setMsgs((m) => [...m, { role: "jack", qa }]); }, 650);
+  };
+  const askedSet = new Set(msgs.filter((m) => m.role === "you").map((m) => m.qa.q));
+  const remaining = topic.qs.filter((x) => !askedSet.has(x.q));
+
+  return (
+    <>
+      {!open && (
+        <button className="aj-launch" onClick={() => setOpen(true)} aria-label="Open Ask Jack">
+          <span className="aj-icon sm"><Bubble /></span>
+          <span>Ask Jack</span>
+        </button>
+      )}
+      {open && (
+        <div className="aj-panel" role="dialog" aria-label="Ask Jack">
+          <header className="aj-head">
+            <div className="aj-title">
+              <span className="aj-icon"><Bubble /></span>
+              <h2>Ask Jack</h2>
+              <button className="aj-close" onClick={() => setOpen(false)} aria-label="Close">×</button>
+            </div>
+            <p>A little help with the markets and our portfolios. Choose a question below.</p>
+          </header>
+          <div className="aj-context">
+            <b>Looking at: {topic.label}</b>
+            <span>Prices through {asOf}</span>
+          </div>
+          <div className="aj-body" ref={bodyRef}>
+            {msgs.length === 0 && (
+              <>
+                <h3>Let&apos;s make sense of it.</h3>
+                <p className="aj-intro">Pick a question for a simple explanation or a calculation using the data currently shown on the site.</p>
+              </>
+            )}
+            {msgs.map((m, i) =>
+              m.role === "you" ? (
+                <div key={i} className="aj-you">{m.qa.q}</div>
+              ) : (
+                <div key={i} className="aj-jack">
+                  {m.qa.a.map((t, j) => <p key={j}>{t}</p>)}
+                  {m.qa.list && <ul>{m.qa.list.map((t, j) => <li key={j} className={/^(\.\.\.|Worst|Best)/.test(t) ? "aj-sub" : ""}>{t}</li>)}</ul>}
+                </div>
+              )
+            )}
+            {typing && <div className="aj-jack aj-typing" aria-label="Jack is typing"><span /><span /><span /></div>}
+            {!typing && (
+              <div className="aj-qs">
+                {msgs.length > 0 && remaining.length > 0 && <p className="aj-more">More about {topic.label.toLowerCase()}:</p>}
+                {remaining.map((x, i) => (
+                  <button key={x.q} className={`aj-q ${TINTS[i % 3]}`} onClick={() => ask(x)}>{x.q}</button>
+                ))}
+                <p className="aj-more">Other topics:</p>
+                <div className="aj-topics">
+                  {others.map((t) => (
+                    <button key={t.id} className="aj-topic" onClick={() => setTopicId(t.id)}>{t.label}</button>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+          <footer className="aj-foot">
+            <button className="aj-reset" onClick={() => setMsgs([])}>↺ Start over</button>
+            <p>Built-in helper, not AI. No AI usage charges. Answers use the displayed data when you tap a question; prices may be delayed.</p>
+          </footer>
+        </div>
+      )}
+    </>
+  );
+}
+
+function Bubble() {
+  return (
+    <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M21 11.5a8.4 8.4 0 0 1-9 8.4 8.6 8.6 0 0 1-3.8-.9L3 20.5l1.5-4.6A8.4 8.4 0 1 1 21 11.5z" />
+    </svg>
+  );
+}

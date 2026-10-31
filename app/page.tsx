@@ -5,6 +5,8 @@ import { BENCHMARK } from "../lib/portfolios";
 import { makeCrossword, Entry } from "../lib/crossword";
 import Crossword from "../components/Crossword";
 import UpOrDown from "../components/UpOrDown";
+import AskJack from "../components/AskJack";
+import { buildAskJack } from "../lib/askjack";
 import { closing, curveStats, huddle, macroMicroQuestion, macroRead, microRead, setup, upcomingEarnings } from "../lib/prompts";
 
 export const revalidate = 60;
@@ -94,6 +96,8 @@ export default async function FrontPage() {
   const shuffled = [...allPos].sort((a, b) => ((h ^ a.symbol.charCodeAt(0) * 2654435761) % 997) - ((h ^ b.symbol.charCodeAt(0) * 2654435761) % 997) || a.symbol.localeCompare(b.symbol));
   const uodItems = shuffled.slice(0, 6).map((p) => ({ s: p.symbol, name: p.name, pct: p.dayPct, owner: p.owner }));
   const mt = q[BENCHMARK]?.marketTime;
+  const asOf = mt ? new Date(mt).toLocaleDateString("en-CA", { timeZone: "America/New_York" }) : etDate;
+  const askTopics = buildAskJack({ q, curve, results, trends, micro, risk, econ, sectors });
   const session = mt ? new Date(mt).toLocaleDateString("en-US", { timeZone: "America/New_York", weekday: "long", month: "short", day: "numeric" }) : "latest";
 
   return (
@@ -562,6 +566,7 @@ export default async function FrontPage() {
         </section>
       </main>
       <Footer />
+      <AskJack topics={askTopics} asOf={asOf} />
     </>
   );
 }

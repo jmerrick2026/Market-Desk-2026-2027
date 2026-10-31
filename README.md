@@ -12,6 +12,10 @@ A daily market recap, three class portfolios, and auto-generated discussion ques
 - **Closing Questions**: end-of-class prompts written from the day's moves.
 - **Puzzles**: a daily crossword (finance vocabulary plus answers drawn from the day's market) and Up or Down?, a guess-the-move game on six holdings. Add or edit crossword words in `lib/crossword.ts`.
 
+## Ask Jack
+
+The **Ask Jack** button (bottom right) opens a built-in helper. Its questions follow whichever section you are reading, and every answer is calculated from the data on the page. It is rule-based, not AI, so it costs nothing to run. Edit questions and answers in `lib/askjack.ts`.
+
 ## Slideshow
 
 Click **Present** in the masthead (or open the site with `?slides=1` at the end of the address). Each section becomes a full-screen slide. Arrow keys or the on-screen arrows move between slides; Esc exits.
