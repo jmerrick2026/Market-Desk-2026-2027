@@ -245,3 +245,13 @@ body.presenting main > .slide-active.front { padding-top: 4vh; }
 @media (min-width: 1400px) { body.presenting main > .slide-active { zoom: 1.25; } }
 @media (min-width: 1800px) { body.presenting main > .slide-active { zoom: 1.5; } }
 @media print { .present-btn, .slide-chrome { display: none; } }
+
+/* Reports */
+.reports a, .directory a { text-decoration: none; border-bottom: 1px dotted var(--ink); }
+.reports a:hover, .directory a:hover { border-bottom-style: solid; }
+.reports { font-size: 13px; white-space: nowrap; }
+.directory td, .directory th { white-space: nowrap; }
+.directory .c { text-align: center; }
+.directory td.c { font: 600 12.5px var(--label); letter-spacing: .03em; }
+.directory .muted { font-style: italic; font-size: 13px; }
+.owners-cell { font: italic 13px var(--body); color: var(--muted); }

@@ -1,4 +1,4 @@
-import { Header, Footer, Term, Chg, fmt, usd, CurveChart, LineChart, filingUrl } from "../components/ui";
+import { Header, Footer, Term, Chg, fmt, usd, CurveChart, LineChart, Reports, reportLinks } from "../components/ui";
 import { MARKET, loadAll, Trend } from "../lib/calc";
 import { Quote } from "../lib/data";
 import { BENCHMARK } from "../lib/portfolios";
@@ -56,6 +56,14 @@ export default async function FrontPage() {
   const cq = closing(results, q, curve);
   cq.splice(Math.max(0, cq.length - 1), 0, { title: "Macro or micro?", items: [macroMicroQuestion(micro, trends)] });
   let qn = 0;
+  // One row per company across all three portfolios, for the reports directory
+  const companies = new Map<string, { s: string; name: string; filing: string; owners: string[] }>();
+  for (const r of results) for (const h of r.positions) {
+    const c = companies.get(h.symbol) ?? { s: h.symbol, name: h.name, filing: h.filing, owners: [] };
+    c.owners.push(r.p.name.replace(" Portfolio", "").replace("'s", ""));
+    companies.set(h.symbol, c);
+  }
+  const directory = [...companies.values()].sort((a, b) => a.s.localeCompare(b.s));
 
   return (
     <>
@@ -299,7 +307,7 @@ export default async function FrontPage() {
                 <thead>
                   <tr>
                     <th>Holding</th><th className="r">Shares</th><th className="r">Price</th><th className="r">Value</th><th className="r">Weight</th>
-                    <th className="r">Today</th><th className="r"><Term t="contribution">Contrib.</Term></th><th className="r">Since start</th><th className="r">Earnings</th><th className="r">Filing</th>
+                    <th className="r">Today</th><th className="r"><Term t="contribution">Contrib.</Term></th><th className="r">Since start</th><th className="r">Earnings</th><th className="r">Reports</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -314,7 +322,7 @@ export default async function FrontPage() {
                       <td className="r num"><Chg v={h.dayPnl} digits={0} suffix="" /></td>
                       <td className="r num"><Chg v={h.sincePct} /></td>
                       <td className="r num">{h.earnings ? dateLabel(h.earnings) : <span className="muted">n/a</span>}</td>
-                      <td className="r"><a href={filingUrl(h.symbol, h.filing)} target="_blank" rel="noreferrer"><Term t={h.filing} /></a></td>
+                      <td className="r"><Reports symbol={h.symbol} filing={h.filing} /></td>
                     </tr>
                   ))}
                 </tbody>
@@ -326,6 +334,43 @@ export default async function FrontPage() {
             {r.missing.length > 0 && <p className="muted small">No data for: {r.missing.join(", ")}.</p>}
           </section>
         ))}
+
+        {/* ── Company reports directory ── */}
+        <section id="reports" data-slide>
+          <Banner title="Company Reports" sub="Primary sources for every company we own. Start with the annual report's Item 1 (the business) and Item 7 (management's discussion)." />
+          <div className="scroll">
+            <table className="directory">
+              <thead>
+                <tr>
+                  <th>Company</th><th>Held in</th>
+                  <th className="c"><Term t="10-K">Annual</Term></th>
+                  <th className="c"><Term t="10-Q">Quarterly</Term></th>
+                  <th className="c"><Term t="8-K">News filings</Term></th>
+                  <th className="c">Financial statements</th>
+                  <th className="c">Earnings estimates</th>
+                </tr>
+              </thead>
+              <tbody>
+                {directory.map((c) => {
+                  const l = reportLinks(c.s, c.filing);
+                  const A = ({ x }: { x: { label: string; url: string } }) => <a href={x.url} target="_blank" rel="noreferrer">{x.label}</a>;
+                  return (
+                    <tr key={c.s}>
+                      <td><a href={l.quote} target="_blank" rel="noreferrer"><b>{c.s}</b></a> {c.name !== c.s && <span className="muted">{c.name}</span>}</td>
+                      <td className="owners-cell">{c.owners.join(" · ")}</td>
+                      <td className="c"><A x={l.annual} /></td>
+                      <td className="c"><A x={l.quarterly} /></td>
+                      <td className="c"><A x={l.news} /></td>
+                      <td className="c"><A x={l.statements} /></td>
+                      <td className="c"><A x={l.earnings} /></td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+          <p className="muted small">SEC links open the company&apos;s filing list on EDGAR, newest first. Foreign companies file a 20-F (annual) and 6-K (interim) instead. Statements and estimates open on Yahoo Finance.</p>
+        </section>
 
         {/* ── Closing questions ── */}
         <section id="closing" data-slide>

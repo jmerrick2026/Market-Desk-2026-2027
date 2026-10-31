@@ -21,5 +21,7 @@ export const GLOSSARY: Record<string, string> = {
   "unusual volume": "Trading volume well above the stock's 3-month daily average. It usually means news, and that big institutions are buying or selling.",
   macro: "Big-picture forces that affect the whole market: interest rates, inflation, the dollar, oil, economic growth, and the Fed.",
   micro: "Company-specific forces: earnings, guidance, new products, management changes, lawsuits.",
+  "10-Q": "The quarterly report U.S. public companies file with the SEC: unaudited financial statements and management's update for the quarter.",
+  "8-K": "A filing for major events between reports: earnings releases, acquisitions, CEO changes. Earnings press releases are usually attached as Exhibit 99.1.",
   "20-F": "The annual report foreign companies listed in the U.S. file with the SEC instead of a 10-K.",
 };

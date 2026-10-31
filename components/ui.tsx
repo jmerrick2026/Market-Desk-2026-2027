@@ -51,6 +51,7 @@ export function Header() {
         <a href="#markets">Markets</a>
         <a href="#micro">Micro</a>
         <a href="#portfolios">Portfolios</a>
+        <a href="#reports">Reports</a>
         <a href="#closing">Closing Questions</a>
         <Slideshow title={SITE.title} date={date} />
       </nav>
@@ -137,4 +138,30 @@ export function CurveChart({ points }: { points: { label: string; years: number;
 
 export function filingUrl(symbol: string, type: string) {
   return `https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=${encodeURIComponent(symbol)}&type=${type}&dateb=&owner=include&count=10`;
+}
+
+/** Links to a company's financial reports: SEC filings plus Yahoo's financial statements. */
+export function reportLinks(symbol: string, filing: string) {
+  const foreign = filing === "20-F";
+  const sym = encodeURIComponent(symbol);
+  return {
+    annual: { label: foreign ? "20-F" : "10-K", url: filingUrl(symbol, foreign ? "20-F" : "10-K") },
+    quarterly: { label: foreign ? "6-K" : "10-Q", url: filingUrl(symbol, foreign ? "6-K" : "10-Q") },
+    news: { label: foreign ? "6-K" : "8-K", url: filingUrl(symbol, foreign ? "6-K" : "8-K") },
+    statements: { label: "Statements", url: `https://finance.yahoo.com/quote/${sym}/financials` },
+    earnings: { label: "Earnings", url: `https://finance.yahoo.com/quote/${sym}/analysis` },
+    quote: `https://finance.yahoo.com/quote/${sym}`,
+  };
+}
+
+export function Reports({ symbol, filing }: { symbol: string; filing: string }) {
+  const r = reportLinks(symbol, filing);
+  const a = (l: { label: string; url: string }, title: string) => (
+    <a href={l.url} target="_blank" rel="noreferrer" title={title}>{l.label}</a>
+  );
+  return (
+    <span className="reports">
+      {a(r.annual, "Annual report")} · {a(r.quarterly, "Quarterly report")} · {a(r.statements, "Income statement, balance sheet, cash flow")}
+    </span>
+  );
 }
