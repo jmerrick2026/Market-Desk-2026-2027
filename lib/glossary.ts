@@ -23,5 +23,11 @@ export const GLOSSARY: Record<string, string> = {
   micro: "Company-specific forces: earnings, guidance, new products, management changes, lawsuits.",
   "10-Q": "The quarterly report U.S. public companies file with the SEC: unaudited financial statements and management's update for the quarter.",
   "8-K": "A filing for major events between reports: earnings releases, acquisitions, CEO changes. Earnings press releases are usually attached as Exhibit 99.1.",
+  volatility: "How much returns swing, measured as the annualized standard deviation of daily returns. The S&P 500 usually runs 15 to 20%.",
+  beta: "How much a stock or portfolio moves for each 1% move in the S&P 500. Beta 1.5 means about 1.5% on average; below 1 means calmer than the market.",
+  "max drawdown": "The worst peak-to-trough fall over the period: how much you would have lost buying at the top and selling at the bottom.",
+  "Sharpe ratio": "Return earned above the risk-free rate per unit of volatility. Higher is better; above 1 is strong.",
+  correlation: "How closely two return streams move together, from -1 (opposite) through 0 (unrelated) to +1 (in lockstep).",
+  consensus: "The median forecast from economists surveyed before a release. Markets move on the surprise versus consensus, not the number itself.",
   "20-F": "The annual report foreign companies listed in the U.S. file with the SEC instead of a 10-K.",
 };

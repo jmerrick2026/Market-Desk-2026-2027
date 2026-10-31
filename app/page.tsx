@@ -1,4 +1,4 @@
-import { Header, Footer, Term, Chg, fmt, usd, CurveChart, LineChart, Reports, reportLinks } from "../components/ui";
+import { Header, Footer, Term, Chg, fmt, usd, CurveChart, LineChart, Reports, reportLinks, HoldingsMap, CorrHeatmap } from "../components/ui";
 import { MARKET, loadAll, Trend } from "../lib/calc";
 import { Quote } from "../lib/data";
 import { BENCHMARK } from "../lib/portfolios";
@@ -6,6 +6,7 @@ import { closing, curveStats, huddle, macroMicroQuestion, macroRead, microRead, 
 
 export const revalidate = 60;
 
+const dayLabel = (d: string) => new Date(d + "T12:00:00Z").toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" });
 const dateLabel = (d: string) => new Date(d + "T12:00:00Z").toLocaleDateString("en-US", { month: "short", day: "numeric" });
 
 function QuoteTable({ rows, q, cols = "Level", digits = 2 }: { rows: readonly (readonly [string, string])[]; q: Record<string, Quote>; cols?: string; digits?: number }) {
@@ -43,7 +44,7 @@ function Banner({ title, sub }: { title: string; sub: string }) {
 }
 
 export default async function FrontPage() {
-  const { quotes: q, curve, results, trends, micro } = await loadAll();
+  const { quotes: q, curve, results, trends, micro, risk, econ } = await loadAll();
   const s = setup(q, curve);
   const prompts = huddle(q, curve);
   const cs = curveStats(curve);
@@ -136,6 +137,64 @@ export default async function FrontPage() {
                   <li key={x.s}><span>{x.n} <span className="muted">{x.s}</span></span><span className="num"><Chg v={x.m1} digits={1} /></span></li>
                 ))}
               </ol>
+            </div>
+          </div>
+        </section>
+
+        {/* ── Economic calendar ── */}
+        <section id="week" data-slide>
+          <Banner title="The Week Ahead" sub="Scheduled economic releases that can move the whole market. Times are Eastern." />
+          <div className="week-grid">
+            <div className="fedbox">
+              <p className="kicker">Next Fed decision</p>
+              {econ.nextFed ? (
+                <>
+                  <p className="big">{new Date(econ.nextFed + "T12:00:00Z").toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" })}</p>
+                  <p className="small">2:00 PM ET · {econ.fedIn === 0 ? "today" : `in ${econ.fedIn} days`}</p>
+                </>
+              ) : <p className="muted">Not yet scheduled.</p>}
+              <p className="small muted">The Federal Open Market Committee sets the short-term interest rate that ripples through every asset on this page.</p>
+            </div>
+            <div>
+              {econ.ahead.length ? (
+                <div className="scroll"><table className="econ">
+                  <thead><tr><th>Day</th><th>Time</th><th>Release</th><th className="r"><Term t="consensus">Consensus</Term></th><th className="r">Previous</th></tr></thead>
+                  <tbody>
+                    {econ.ahead.map((e, i) => (
+                      <tr key={i}>
+                        <td className="nowrap">{dayLabel(e.date)}</td>
+                        <td className="nowrap">{e.time}</td>
+                        <td><b>{e.name}</b><span className="why">{e.why}</span></td>
+                        <td className="r num">{e.consensus ?? "n/a"}</td>
+                        <td className="r num">{e.previous ?? "n/a"}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table></div>
+              ) : <p className="muted">{econ.ok ? "No major U.S. releases are scheduled in the next week." : "The economic calendar is not available right now."}</p>}
+              {econ.recent.length > 0 && (
+                <>
+                  <h3 className="sub" style={{ marginTop: 18 }}>Just released</h3>
+                  <table className="econ">
+                    <thead><tr><th>Day</th><th>Release</th><th className="r">Actual</th><th className="r">Consensus</th><th className="r">Surprise?</th></tr></thead>
+                    <tbody>
+                      {econ.recent.map((e, i) => {
+                        const a = parseFloat(e.actual ?? ""), c = parseFloat(e.consensus ?? "");
+                        const surprise = isFinite(a) && isFinite(c) ? (a > c ? "Above" : a < c ? "Below" : "In line") : "n/a";
+                        return (
+                          <tr key={i}>
+                            <td className="nowrap">{dayLabel(e.date)}</td>
+                            <td><b>{e.name}</b></td>
+                            <td className="r num"><b>{e.actual}</b></td>
+                            <td className="r num">{e.consensus ?? "n/a"}</td>
+                            <td className="r">{surprise}</td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </>
+              )}
             </div>
           </div>
         </section>
@@ -283,6 +342,82 @@ export default async function FrontPage() {
               <p className="muted small">Yahoo&apos;s dates can be off by a day or two.</p>
             </div>
           </div>
+        </section>
+
+        <section id="map" className="card" data-slide>
+          <h2>Holdings Map <span className="muted small">each block is sized by its weight in the portfolio and shaded by today&apos;s move</span></h2>
+          <div className="maps">
+            {results.map((r) => (
+              <figure key={r.p.id}>
+                <figcaption className="mapcap"><b>{r.p.name}</b> <Chg v={r.dayPct} /></figcaption>
+                <HoldingsMap items={r.positions.map((h) => ({ symbol: h.symbol, weight: h.weight, dayPct: h.dayPct }))} />
+              </figure>
+            ))}
+          </div>
+          <p className="legend"><span className="sw" style={{ background: "rgba(163,39,29,.93)" }} /> −3% or worse <span className="sw" style={{ background: "rgba(163,39,29,.35)" }} /> <span className="sw" style={{ background: "rgba(31,107,58,.35)" }} /> <span className="sw" style={{ background: "rgba(31,107,58,.93)" }} /> +3% or better</p>
+        </section>
+
+        <section id="risk" data-slide>
+          <Banner title="Risk" sub={`How bumpy each portfolio's ride is, using today's holdings over the last ${risk.days} trading days.`} />
+          <div className="scroll">
+            <table className="risk">
+              <thead>
+                <tr>
+                  <th>Portfolio</th>
+                  <th className="r">6-mo return</th>
+                  <th className="r"><Term t="volatility">Volatility</Term></th>
+                  <th className="r"><Term t="beta">Beta</Term></th>
+                  <th className="r"><Term t="max drawdown">Max drawdown</Term></th>
+                  <th className="r"><Term t="Sharpe ratio">Sharpe</Term></th>
+                  <th className="r"><Term t="correlation">Avg. correlation</Term></th>
+                </tr>
+              </thead>
+              <tbody>
+                {risk.portfolios.map((p) => (
+                  <tr key={p.id}>
+                    <td><b>{p.stats.name}</b><span className="why">Highest beta: {p.topBeta?.s} ({p.topBeta?.beta.toFixed(2)}). Most volatile: {p.topVol?.s} ({p.topVol?.vol.toFixed(0)}% a year).</span></td>
+                    <td className="r num"><Chg v={p.stats.ret} digits={1} /></td>
+                    <td className="r num">{p.stats.vol?.toFixed(1)}%</td>
+                    <td className="r num">{p.stats.beta?.toFixed(2)}</td>
+                    <td className="r num down">{p.stats.maxDD?.toFixed(1)}%</td>
+                    <td className="r num">{p.stats.sharpe?.toFixed(2)}</td>
+                    <td className="r num">{p.stats.avgCorr?.toFixed(2)}</td>
+                  </tr>
+                ))}
+                <tr className="benchrow">
+                  <td>{risk.bench.name}</td>
+                  <td className="r num"><Chg v={risk.bench.ret} digits={1} /></td>
+                  <td className="r num">{risk.bench.vol?.toFixed(1)}%</td>
+                  <td className="r num">1.00</td>
+                  <td className="r num">{risk.bench.maxDD?.toFixed(1)}%</td>
+                  <td className="r num">{risk.bench.sharpe?.toFixed(2)}</td>
+                  <td></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div className="risk-notes">
+            {risk.portfolios.map((p) => {
+              const b = p.stats.beta ?? 1;
+              return (
+                <p key={p.id}><b>{p.stats.name.replace(" Portfolio", "")}:</b> a beta of {b.toFixed(2)} means that when the S&amp;P 500 moves 1%, this portfolio has tended to move about {b.toFixed(1)}%. {(p.stats.avgCorr ?? 0) > 0.4 ? "Its holdings move together a lot, so diversification is weaker than the number of names suggests." : (p.stats.avgCorr ?? 0) < 0.2 ? "Its holdings move fairly independently, which is what real diversification looks like." : "Its holdings are moderately linked."}</p>
+              );
+            })}
+          </div>
+          <p className="muted small">Sharpe ratio uses the current 3-month T-bill yield as the risk-free rate. These are backward-looking measures, not forecasts.</p>
+        </section>
+
+        <section className="card" data-slide>
+          <h2>Which holdings move together? <span className="muted small"><Term t="correlation" /> of daily returns, last {risk.days} trading days</span></h2>
+          <div className="heats">
+            {risk.portfolios.map((p) => (
+              <figure key={p.id}>
+                <figcaption className="mapcap"><b>{p.stats.name}</b> <span className="muted">avg. {p.stats.avgCorr?.toFixed(2)}</span></figcaption>
+                <CorrHeatmap syms={p.syms} matrix={p.matrix} slots={Math.max(...risk.portfolios.map((x) => x.syms.length))} />
+              </figure>
+            ))}
+          </div>
+          <p className="legend"><span className="sw" style={{ background: "rgba(163,39,29,.6)" }} /> move opposite <span className="sw" style={{ background: "rgba(22,20,18,.08)", border: "1px solid #cfc6b4" }} /> unrelated <span className="sw" style={{ background: "rgba(22,20,18,.5)" }} /> <span className="sw" style={{ background: "rgba(22,20,18,.95)" }} /> move together · holdings ordered by weight, largest first</p>
         </section>
 
         {results.map((r) => (

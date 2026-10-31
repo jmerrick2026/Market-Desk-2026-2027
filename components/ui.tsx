@@ -1,5 +1,6 @@
 import Link from "next/link";
 import Slideshow from "./Slideshow";
+import { squarify } from "../lib/risk";
 import { GLOSSARY } from "../lib/glossary";
 import { SITE } from "../lib/portfolios";
 import { DEMO } from "../lib/data";
@@ -48,9 +49,11 @@ export function Header() {
       <nav>
         <a href="#front">The Session</a>
         <a href="#macro">Macro</a>
+        <a href="#week">Week Ahead</a>
         <a href="#markets">Markets</a>
         <a href="#micro">Micro</a>
         <a href="#portfolios">Portfolios</a>
+        <a href="#risk">Risk</a>
         <a href="#reports">Reports</a>
         <a href="#closing">Closing Questions</a>
         <Slideshow title={SITE.title} date={date} />
@@ -163,5 +166,58 @@ export function Reports({ symbol, filing }: { symbol: string; filing: string }) 
     <span className="reports">
       {a(r.annual, "Annual report")} · {a(r.quarterly, "Quarterly report")} · {a(r.statements, "Income statement, balance sheet, cash flow")}
     </span>
+  );
+}
+
+/** Holdings map: each block sized by portfolio weight, shaded by today's move. */
+export function HoldingsMap({ items, width = 360, height = 300 }: {
+  items: { symbol: string; weight: number; dayPct: number }[]; width?: number; height?: number;
+}) {
+  const cells = squarify(items.map((i) => ({ ...i, value: Math.max(0.01, i.weight) })), { x: 0, y: 0, w: width, h: height });
+  const shade = (v: number) => {
+    const a = Math.min(1, Math.abs(v) / 3) * 0.85 + 0.08; // full strength at ±3%
+    return v >= 0 ? `rgba(31,107,58,${a.toFixed(2)})` : `rgba(163,39,29,${a.toFixed(2)})`;
+  };
+  return (
+    <svg viewBox={`0 0 ${width} ${height}`} className="tmap" role="img" aria-label="Holdings map sized by weight and shaded by today's change">
+      {cells.map((c) => {
+        const strong = Math.abs(c.dayPct) > 1.4;
+        const big = c.w > 46 && c.h > 30;
+        return (
+          <g key={c.symbol}>
+            <rect x={c.x + 0.75} y={c.y + 0.75} width={Math.max(0, c.w - 1.5)} height={Math.max(0, c.h - 1.5)} fill={shade(c.dayPct)} stroke="#161412" strokeWidth="0.75" />
+            {c.w > 26 && c.h > 16 && (
+              <text x={c.x + c.w / 2} y={c.y + c.h / 2 + (big ? -2 : 4)} textAnchor="middle" className={`tm-sym ${strong ? "light" : ""}`} style={{ fontSize: Math.min(15, Math.max(9, Math.sqrt(c.w * c.h) / 4.2)) }}>{c.symbol}</text>
+            )}
+            {big && (
+              <text x={c.x + c.w / 2} y={c.y + c.h / 2 + 12} textAnchor="middle" className={`tm-pct ${strong ? "light" : ""}`}>{c.dayPct > 0 ? "+" : ""}{c.dayPct.toFixed(1)}%</text>
+            )}
+            <title>{`${c.symbol}: ${c.weight.toFixed(1)}% of portfolio, ${c.dayPct > 0 ? "+" : ""}${c.dayPct.toFixed(2)}% today`}</title>
+          </g>
+        );
+      })}
+    </svg>
+  );
+}
+
+/** Correlation heatmap: darker ink = holdings that move together. */
+export function CorrHeatmap({ syms, matrix, slots }: { syms: string[]; matrix: number[][]; slots?: number }) {
+  const cell = 15, pad = 40;
+  const size = pad + Math.max(syms.length, slots ?? 0) * cell; // same scale for every portfolio
+  const fill = (v: number) => (v >= 0 ? `rgba(22,20,18,${Math.min(1, v).toFixed(2)})` : `rgba(163,39,29,${Math.min(1, -v).toFixed(2)})`);
+  return (
+    <svg viewBox={`0 0 ${size} ${size}`} className="heat" role="img" aria-label="Correlation heatmap of holdings">
+      {syms.map((s, i) => (
+        <g key={s}>
+          <text x={pad - 4} y={pad + i * cell + cell * 0.72} textAnchor="end" className="hm-lbl">{s}</text>
+          <text x={pad + i * cell + cell * 0.7} y={pad - 4} transform={`rotate(-90 ${pad + i * cell + cell * 0.7} ${pad - 4})`} className="hm-lbl">{s}</text>
+        </g>
+      ))}
+      {matrix.map((row, i) => row.map((v, j) => (
+        <rect key={`${i}-${j}`} x={pad + j * cell} y={pad + i * cell} width={cell - 1} height={cell - 1} fill={i === j ? "#cfc6b4" : fill(v)}>
+          <title>{`${syms[i]} / ${syms[j]}: ${v.toFixed(2)}`}</title>
+        </rect>
+      )))}
+    </svg>
   );
 }

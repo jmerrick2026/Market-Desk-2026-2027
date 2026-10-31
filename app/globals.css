@@ -255,3 +255,33 @@ body.presenting main > .slide-active.front { padding-top: 4vh; }
 .directory td.c { font: 600 12.5px var(--label); letter-spacing: .03em; }
 .directory .muted { font-style: italic; font-size: 13px; }
 .owners-cell { font: italic 13px var(--body); color: var(--muted); }
+
+/* Week ahead */
+.week-grid { display: grid; grid-template-columns: 240px 1fr; gap: 26px; }
+.fedbox { border: 3px double var(--rule); padding: 14px; text-align: center; align-self: start; }
+.fedbox .big { font: 800 24px/1.15 var(--head); margin: 4px 0; }
+.fedbox .kicker { margin: 0; }
+.econ td { vertical-align: top; }
+.nowrap { white-space: nowrap; }
+@media (max-width: 760px) { .week-grid { grid-template-columns: 1fr; } }
+
+/* Holdings map & heatmaps */
+.maps, .heats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; }
+.maps figure, .heats figure { margin: 0; }
+.mapcap { border-top: 0; padding: 0 0 6px; font: 15px var(--body); display: flex; justify-content: space-between; }
+.mapcap b { font-family: var(--head); }
+.tmap { width: 100%; height: auto; display: block; background: var(--paper); }
+.tm-sym { font-family: var(--label); font-weight: 600; fill: var(--ink); letter-spacing: .02em; }
+.tm-pct { font: 10.5px var(--label); fill: var(--ink); }
+.tm-sym.light, .tm-pct.light { fill: #fbf8f1; }
+.heat { width: 100%; height: auto; display: block; }
+.hm-lbl { font: 600 8.5px var(--label); fill: var(--ink-soft); }
+.legend { font: 12px var(--label); color: var(--ink-soft); display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-top: 10px; }
+.sw { display: inline-block; width: 22px; height: 12px; border: 1px solid var(--rule); }
+@media (max-width: 860px) { .maps, .heats { grid-template-columns: 1fr; } }
+
+/* Risk */
+.risk td { vertical-align: top; }
+.risk-notes { column-count: 3; column-gap: 26px; column-rule: 1px solid var(--hair); margin-top: 14px; }
+.risk-notes p { margin: 0 0 10px; font-size: 15px; break-inside: avoid; }
+@media (max-width: 860px) { .risk-notes { column-count: 1; } }

@@ -1,5 +1,7 @@
 import { BENCHMARK, PORTFOLIOS, Portfolio } from "./portfolios";
 import { Bar, Quote, closeOnOrBefore, getCurve, getHistories, getQuotes } from "./data";
+import { getEconCalendar } from "./econ";
+import { computeRisk } from "./risk";
 
 export type Position = {
   symbol: string;
@@ -202,11 +204,12 @@ export async function loadAll() {
   const marketSyms = Object.values(MARKET).flat().map(([s]) => s as string);
   const quoteSyms = [...new Set([...marketSyms, ...holdings, BENCHMARK, ...TREND_SYMBOLS])];
   const histSyms = [...new Set([...holdings, BENCHMARK, ...TREND_SYMBOLS])];
-  const from = [...PORTFOLIOS.map((p) => p.startDate), daysAgo(45)].sort()[0];
-  const [quotes, hist, curve] = await Promise.all([getQuotes(quoteSyms), getHistories(histSyms, from), getCurve()]);
+  const from = [...PORTFOLIOS.map((p) => p.startDate), daysAgo(190)].sort()[0]; // ~6 months for risk stats
+  const [quotes, hist, curve, econ] = await Promise.all([getQuotes(quoteSyms), getHistories(histSyms, from), getCurve(), getEconCalendar()]);
+  const results = computePortfolios(quotes, hist);
   return {
-    quotes, curve,
-    results: computePortfolios(quotes, hist),
+    quotes, curve, econ, results,
+    risk: computeRisk(results, hist, BENCHMARK, quotes["^IRX"]?.price ?? 4),
     trends: computeTrends(quotes, hist),
     micro: computeMicro(quotes, hist),
   };
