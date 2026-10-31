@@ -126,7 +126,12 @@
   .article p { margin: 0 0 18px; color: #3a434d; font-size: 16.5px; max-width: 700px; }
   .article-cta { font: 600 13px var(--sans); letter-spacing: .12em; text-transform: uppercase; color: var(--slate); border-bottom: 1px solid var(--slate); padding-bottom: 2px; }
   .press-head { font: 600 12px var(--sans); letter-spacing: .22em; text-transform: uppercase; color: var(--brass); margin: 40px 0 0; }
-  .article.press { border-left-color: var(--slate); }
+  .article.press { border-left-color: var(--slate); margin-top: 18px; }
+  .article.mag:hover { transform: none; box-shadow: none; }
+  .mag-btns { display: flex; gap: 12px; flex-wrap: wrap; }
+  .mag-btn { font: 600 12.5px var(--sans); letter-spacing: .1em; text-transform: uppercase; text-decoration: none; padding: 11px 18px; border-radius: 999px; border: 1px solid var(--slate); color: var(--slate); transition: background .2s, color .2s; }
+  .mag-btn:hover, .mag-btn.solid { background: var(--slate); color: #fff; }
+  .mag-btn.solid:hover { background: var(--ink); }
   .inline-link { text-decoration: none; border-bottom: 1px solid var(--brass); }
   .inline-link:hover { color: var(--brass); }
 
@@ -343,6 +348,15 @@
         <p>The Miami Herald's 2026 spring all-county selections named Jack the county's top boys' water polo player, alongside first-team All-Dade honors.</p>
         <span class="article-cta">Read the Herald story ↗</span>
       </a>
+      <div class="article press mag reveal">
+        <div class="article-meta"><span>RE Log magazine</span><span>Fall 2026</span></div>
+        <h3>Pool Dominance</h3>
+        <p>Ransom Everglades' magazine covers the boys' water polo team's climb to a top national ranking, including Jack's Miami Herald honor and his game-winning goal in the state semifinal.</p>
+        <div class="mag-btns">
+          <a class="mag-btn" href="https://www.ransomevergladesschool.com/RE-log/2026/fall/" target="_blank" rel="noopener">1 · View the cover ↗</a>
+          <a class="mag-btn solid" href="https://www.ransomevergladesschool.com/RE-log/2026/fall/42/" target="_blank" rel="noopener">2 · Jump to the story ↗</a>
+        </div>
+      </div>
     </div>
   </section>
 
