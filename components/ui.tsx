@@ -36,7 +36,7 @@ export function Header() {
   return (
     <header className="masthead wrap">
       <div className="ears">
-        <span>{SITE.course}</span>
+        <span>{SITE.tagline}</span>
         <span>Late Edition · {time} ET</span>
       </div>
       <Link href="/" className="nameplate">The {SITE.title}</Link>
@@ -63,7 +63,7 @@ export function Footer() {
   return (
     <footer className="wrap foot">
       <p>Prices: Yahoo Finance, delayed. Yield curve: U.S. Treasury daily par yields. Filings: SEC EDGAR. Pages refresh about once a minute.</p>
-      <p>Built for classroom use in {SITE.course}. Not investment advice.</p>
+      <p>For educational use. Not investment advice.</p>
     </footer>
   );
 }

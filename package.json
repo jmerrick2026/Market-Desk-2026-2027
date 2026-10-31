@@ -1,7 +1,7 @@
 {
   "name": "market-monitor",
   "version": "1.0.0",
-  "description": "Market Monitor for MATH 621",
+  "description": "The Market Monitor",
   "scripts": {
     "dev": "next dev",
     "build": "next build",

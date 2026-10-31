@@ -1,6 +1,6 @@
-# Market Monitor · MATH 621
+# The Market Monitor
 
-A daily market recap, three class portfolios, and auto-generated discussion questions for MATH 621: Quantitative Finance and AI. Prices come live from Yahoo Finance; the yield curve comes from the U.S. Treasury.
+A daily market recap, three class portfolios, and auto-generated discussion questions. Prices come live from Yahoo Finance; the yield curve comes from the U.S. Treasury.
 
 ## One page, in sections
 
@@ -33,7 +33,7 @@ All in `lib/portfolios.ts` (you can edit it right on github.com with the pencil 
 - **Cash:** set `cash: 1500` on a portfolio. It counts toward value but earns nothing.
 - **Add or remove a stock:** add or delete a `{ symbol: "..." }` line.
 - **Start date or starting value:** change `startDate` or `startValue`.
-- **Names, course title, byline:** the `SITE` block at the bottom.
+- **Names, tagline, byline:** the `SITE` block at the bottom.
 
 Glossary definitions live in `lib/glossary.ts`. Market tickers shown on the Markets page live in the `MARKET` list in `lib/calc.ts`. Colors are at the top of `app/globals.css`.
 
