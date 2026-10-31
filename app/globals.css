@@ -518,3 +518,33 @@ nav.index-box a { padding: 0; border: 0; text-transform: none; letter-spacing: 0
 .agate-row.hi { background: rgba(0,0,0,.045); }
 @media (max-width: 860px) { .agate { grid-template-columns: 1fr; } .agate-col { border-left: 0; padding: 0; } }
 body.presenting .sheet { box-shadow: none; }
+
+/* Ask Jack: orange & blue theme */
+:root { --aj-blue: #0021A5; --aj-blue-dk: #001a84; --aj-orange: #FA4616; --aj-orange-dk: #d93a0f; }
+.aj-launch { background: var(--aj-orange); color: #fff; border-color: var(--aj-orange-dk); }
+.aj-launch:hover { background: var(--aj-orange-dk); }
+.aj-panel { border-color: var(--aj-blue); color: #14183a; }
+.aj-head { background: var(--aj-blue); border-bottom: 4px solid var(--aj-orange); }
+.aj-title h2, .aj-head p { color: #fff; }
+.aj-head p { opacity: .92; }
+.aj-status { color: #ffd2c2; }
+.aj-close { color: #fff; }
+.aj-ava svg { box-shadow: 0 0 0 3px var(--aj-orange), 0 2px 8px rgba(0,0,0,.25); }
+.aj-ava.xs svg { box-shadow: 0 0 0 2px var(--aj-blue); }
+.aj-launch .aj-ava svg { box-shadow: 0 0 0 2px #fff; }
+.aj-context { background: #fff1eb; border-bottom-color: #ffd6c7; }
+.aj-context b { color: var(--aj-blue); }
+.aj-body h3 { color: var(--aj-blue); }
+.aj-q.lav { background: #e9edfb; border-color: #b9c4f0; }
+.aj-q.pink { background: #fff0e9; border-color: #ffc4ad; }
+.aj-q.lime { background: #f5f7fe; border-color: var(--aj-blue); border-style: dashed; }
+.aj-q:hover { filter: none; border-color: var(--aj-orange); }
+.aj-more { color: var(--aj-orange-dk); }
+.aj-topic { border-color: #b9c4f0; color: var(--aj-blue); }
+.aj-topic:hover { background: #fff0e9; border-color: var(--aj-orange); }
+.aj-you { background: var(--aj-blue); }
+.aj-jack { background: #f3f5fd; border-color: #d3daf5; }
+.aj-typing span { background: var(--aj-orange); }
+.aj-foot { border-top: 3px solid var(--aj-blue); }
+.aj-reset { color: var(--aj-blue); }
+.aj-reset:hover { color: var(--aj-orange); }
