@@ -128,33 +128,38 @@ export default function AskJack({ topics, asOf }: { topics: Topic[]; asOf: strin
   );
 }
 
-/** Jack: a friendly cartoon 18-year-old in a navy hoodie (original illustration). */
+/** Jack: an original cartoon alligator in round glasses, suit, and tie. */
 function Avatar() {
   const id = useId().replace(/:/g, "");
   return (
     <svg viewBox="0 0 120 120" aria-hidden="true">
       <defs><clipPath id={`c${id}`}><circle cx="60" cy="60" r="60" /></clipPath></defs>
       <g clipPath={`url(#c${id})`}>
-        <rect width="120" height="120" fill="#e7e0fb" />
-        <path d="M14 120 C16 96 34 86 60 86 C86 86 104 96 106 120 Z" fill="#2f4570" />
-        <path d="M44 88 C50 98 70 98 76 88 L72 86 C66 92 54 92 48 86 Z" fill="#253a60" />
-        <path d="M52 92 L50 108 M68 92 L70 108" stroke="#e8e2f8" strokeWidth="2" strokeLinecap="round" />
-        <path d="M51 74 L51 88 C55 92 65 92 69 88 L69 74 Z" fill="#e3ad87" />
-        <ellipse cx="35.5" cy="56" rx="4.5" ry="6.5" fill="#efbf9a" />
-        <ellipse cx="84.5" cy="56" rx="4.5" ry="6.5" fill="#efbf9a" />
-        <path d="M36 50 C36 30 48 22 60 22 C72 22 84 30 84 50 C84 66 74 80 60 80 C46 80 36 66 36 50 Z" fill="#f4caa6" />
-        <path d="M34 50 C31 30 42 16 58 15 C70 14 80 18 85 28 C88 34 87 44 85 50 C83 42 80 37 76 34 C70 38 60 39 50 36 C46 40 40 43 36 52 Z" fill="#5b3a24" />
-        <path d="M50 36 C54 30 62 27 70 29 C64 31 60 34 58 38 Z" fill="#6e4a30" />
-        <path d="M44.5 46.5 Q49 44 53.5 46" stroke="#4a2f1c" strokeWidth="2.4" fill="none" strokeLinecap="round" />
-        <path d="M66.5 46 Q71 44 75.5 46.5" stroke="#4a2f1c" strokeWidth="2.4" fill="none" strokeLinecap="round" />
-        <ellipse cx="49.5" cy="53" rx="2.8" ry="3.3" fill="#2a2340" />
-        <ellipse cx="70.5" cy="53" rx="2.8" ry="3.3" fill="#2a2340" />
-        <circle cx="50.5" cy="52" r="0.9" fill="#fff" /><circle cx="71.5" cy="52" r="0.9" fill="#fff" />
-        <path d="M60 56 Q58.5 62 61.5 63" stroke="#d99e7a" strokeWidth="1.6" fill="none" strokeLinecap="round" />
-        <ellipse cx="44" cy="63" rx="4" ry="2.4" fill="#f2a9a0" opacity=".45" />
-        <ellipse cx="76" cy="63" rx="4" ry="2.4" fill="#f2a9a0" opacity=".45" />
-        <path d="M52 67 Q60 74 68 67" stroke="#a5523f" strokeWidth="2.2" fill="none" strokeLinecap="round" />
-        <path d="M54 68 Q60 72.5 66 68 Q60 70.5 54 68 Z" fill="#fff" />
+        <rect width="120" height="120" fill="#efe9d8" />
+        <path d="M10 120 C14 98 34 90 60 90 C86 90 106 98 110 120 Z" fill="#2b2b33" />
+        <path d="M46 90 L60 112 L74 90 Z" fill="#fbf8f1" />
+        <path d="M57 94 L63 94 L65 99 L60 114 L55 99 Z" fill="#8c1d2f" />
+        <path d="M57 94 L63 94 L61.5 98 L58.5 98 Z" fill="#6e1424" />
+        <path d="M44 78 C46 88 74 88 76 78 L76 92 C70 96 50 96 44 92 Z" fill="#4f9a4a" />
+        <path d="M26 58 C26 38 40 28 58 28 C76 28 92 36 96 52 C99 62 96 74 86 80 C74 86 46 86 36 80 C29 76 26 68 26 58 Z" fill="#5aab52" />
+        <path d="M52 50 C64 46 92 46 104 50 C112 53 113 64 105 68 C92 73 66 74 54 70 Z" fill="#62b85a" />
+        <path d="M40 70 C56 76 90 76 105 68 C104 76 92 82 76 83 C60 84 46 80 40 70 Z" fill="#c9e3a6" />
+        <path d="M44 69 C60 75 90 74 106 66" stroke="#2f5e2c" strokeWidth="2" fill="none" strokeLinecap="round" />
+        <g fill="#fff" stroke="#2f5e2c" strokeWidth=".8">
+          <path d="M62 72 L64.5 77 L67 72.6 Z" /><path d="M74 73.2 L76.5 78 L79 73 Z" /><path d="M86 72.4 L88.5 77 L91 71.8 Z" /><path d="M97 70 L99 74 L101 69 Z" />
+        </g>
+        <ellipse cx="101" cy="53" rx="2" ry="1.4" fill="#2f5e2c" /><ellipse cx="94" cy="52" rx="2" ry="1.4" fill="#2f5e2c" />
+        <g fill="#4a9443"><circle cx="40" cy="42" r="2.6" /><circle cx="34" cy="52" r="2.2" /><circle cx="72" cy="56" r="2" /><circle cx="82" cy="58" r="1.8" /><circle cx="64" cy="59" r="1.8" /></g>
+        <ellipse cx="46" cy="38" rx="11" ry="11" fill="#5aab52" />
+        <ellipse cx="66" cy="36" rx="11" ry="11" fill="#5aab52" />
+        <ellipse cx="46" cy="38" rx="7.5" ry="8" fill="#fff" />
+        <ellipse cx="66" cy="36" rx="7.5" ry="8" fill="#fff" />
+        <circle cx="48" cy="39" r="4" fill="#1d1a16" /><circle cx="68" cy="37" r="4" fill="#1d1a16" />
+        <circle cx="49.3" cy="37.6" r="1.3" fill="#fff" /><circle cx="69.3" cy="35.6" r="1.3" fill="#fff" />
+        <path d="M38.5 34 C42 29 50 29 53.5 34" stroke="#3f8239" strokeWidth="2.4" fill="none" strokeLinecap="round" />
+        <path d="M58.5 32 C62 27 70 27 73.5 32" stroke="#3f8239" strokeWidth="2.4" fill="none" strokeLinecap="round" />
+        <g stroke="#b88a2a" strokeWidth="2.2" fill="none"><circle cx="46" cy="38.5" r="9.5" /><circle cx="66" cy="36.5" r="9.5" /><path d="M55.3 37.6 Q56 35.5 56.8 37.3" /><path d="M36.6 39 L28 41" /></g>
+        <ellipse cx="44" cy="62" rx="4" ry="2.4" fill="#f2a9a0" opacity=".45" />
       </g>
     </svg>
   );

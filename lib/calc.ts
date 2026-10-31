@@ -203,12 +203,13 @@ export async function loadAll() {
   const holdings = PORTFOLIOS.flatMap((p) => p.holdings.map((h) => h.symbol));
   const marketSyms = Object.values(MARKET).flat().map(([s]) => s as string);
   const quoteSyms = [...new Set([...marketSyms, ...holdings, BENCHMARK, ...TREND_SYMBOLS])];
-  const histSyms = [...new Set([...holdings, BENCHMARK, ...TREND_SYMBOLS])];
+  const histSyms = [...new Set([...holdings, BENCHMARK, "^GSPC", ...TREND_SYMBOLS])];
   const from = [...PORTFOLIOS.map((p) => p.startDate), daysAgo(190)].sort()[0]; // ~6 months for risk stats
   const [quotes, hist, curve, econ] = await Promise.all([getQuotes(quoteSyms), getHistories(histSyms, from), getCurve(), getEconCalendar()]);
   const results = computePortfolios(quotes, hist);
   return {
     quotes, curve, econ, results,
+    spxBars: (hist["^GSPC"] ?? []).filter((b) => b.date >= daysAgo(92)),
     risk: computeRisk(results, hist, BENCHMARK, quotes["^IRX"]?.price ?? 4),
     trends: computeTrends(quotes, hist),
     micro: computeMicro(quotes, hist),

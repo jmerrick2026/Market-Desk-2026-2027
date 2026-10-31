@@ -6,6 +6,7 @@ import { makeCrossword, Entry } from "../lib/crossword";
 import Crossword from "../components/Crossword";
 import UpOrDown from "../components/UpOrDown";
 import AskJack from "../components/AskJack";
+import { LeadArt, MarketWeather, SectionArt } from "../components/art";
 import { VIDEOS, toEmbed } from "../lib/videos";
 import { buildAskJack } from "../lib/askjack";
 import { closing, curveStats, huddle, macroMicroQuestion, macroRead, microRead, setup, upcomingEarnings } from "../lib/prompts";
@@ -40,17 +41,21 @@ function TrendCell({ t, v }: { t: Trend; v?: number }) {
 
 const arrow = (v?: number) => (v == null ? "" : v > 0.05 ? "▲" : v < -0.05 ? "▼" : "▬");
 
-function Banner({ title, sub }: { title: string; sub: string }) {
+function Banner({ title, sub, art, page }: { title: string; sub: string; art?: string; page?: string }) {
   return (
     <div className="banner">
-      <h2>{title}</h2>
-      <p>{sub}</p>
+      {art && <SectionArt kind={art} />}
+      <div className="banner-text">
+        <h2>{title}</h2>
+        <p>{sub}</p>
+      </div>
+      {page && <span className="page-no">{page}</span>}
     </div>
   );
 }
 
 export default async function FrontPage() {
-  const { quotes: q, curve, results, trends, micro, risk, econ } = await loadAll();
+  const { quotes: q, curve, results, trends, micro, risk, econ, spxBars } = await loadAll();
   const s = setup(q, curve);
   const prompts = huddle(q, curve);
   const cs = curveStats(curve);
@@ -102,12 +107,13 @@ export default async function FrontPage() {
   const session = mt ? new Date(mt).toLocaleDateString("en-US", { timeZone: "America/New_York", weekday: "long", month: "short", day: "numeric" }) : "latest";
 
   return (
-    <>
+    <div className="sheet">
       <Header />
       <main className="wrap">
         {/* ── 15-minute recap ── */}
         <section id="recap" className="recap" data-slide data-brief>
           <div className="recap-head">
+            <SectionArt kind="recap" />
             <p className="kicker">If you only have 15 minutes</p>
             <h2>The Recap</h2>
             <p className="recap-hl">{s.headline}</p>
@@ -153,18 +159,29 @@ export default async function FrontPage() {
             <p className="kicker">The Session</p>
             <h1>{s.headline}</h1>
             <p className="deck">A desk read of the tape, written from the closing numbers.</p>
+            <LeadArt bars={spxBars} title="S&P 500 · last three months" />
             <div className="cols">{s.body.map((b, i) => <p key={i}>{b}</p>)}</div>
+            <p className="jump"><a href="#markets">Full market tables, Section B, Page 1 ›</a></p>
           </article>
           <aside className="huddle">
+            <MarketWeather vix={q["^VIX"]?.price} spx={q["^GSPC"]?.changePct} />
             <p className="kicker">Huddle</p>
             <h3>Three Questions to Open Class</h3>
             <ol>{prompts.map((p, i) => <li key={i}>{p}</li>)}</ol>
+            <nav className="index-box" aria-label="Inside today's edition">
+              <p className="kicker">Inside</p>
+              <ul>
+                {[["Macro Trends", "#macro", "A2"], ["The Week Ahead", "#week", "A3"], ["Markets", "#markets", "B1"], ["Micro Trends", "#micro", "B2"], ["Portfolios", "#portfolios", "C1"], ["Risk", "#risk", "C2"], ["Stock Pages", "#stocks", "C3"], ["Company Reports", "#reports", "C4"], ["Closing Questions", "#closing", "D1"], ["Puzzles", "#puzzles", "D3"]].map(([n, h, pg]) => (
+                  <li key={h}><a href={h}>{n}</a><span className="dots" /><span>{pg}</span></li>
+                ))}
+              </ul>
+            </nav>
           </aside>
         </div>
 
         {/* ── Macro trends ── */}
         <section id="macro" data-slide data-brief>
-          <Banner title="Macro Trends" sub="The big forces that move every stock at once: rates, currencies, commodities, and fear." />
+          <Banner art="globe" page="A2" title="Macro Trends" sub="The big forces that move every stock at once: rates, currencies, commodities, and fear." />
           <div className="macro-grid">
             <div className="cols-narrow">{macroLines.map((l, i) => <p key={i}>{l}</p>)}</div>
             <div className="scroll">
@@ -220,7 +237,7 @@ export default async function FrontPage() {
 
         {/* ── Economic calendar ── */}
         <section id="week" data-slide>
-          <Banner title="The Week Ahead" sub="Scheduled economic releases that can move the whole market. Times are Eastern." />
+          <Banner art="columns" page="A3" title="The Week Ahead" sub="Scheduled economic releases that can move the whole market. Times are Eastern." />
           <div className="week-grid">
             <div className="fedbox">
               <p className="kicker">Next Fed decision</p>
@@ -278,7 +295,7 @@ export default async function FrontPage() {
 
         {/* ── Markets ── */}
         <section id="markets" data-slide>
-          <Banner title="Markets" sub="Where the major indices closed, at home and abroad." />
+          <Banner art="candles" page="B1" title="Markets" sub="Where the major indices closed, at home and abroad." />
           <div className="grid2">
             <section className="card">
               <h2>U.S. indices</h2>
@@ -338,7 +355,7 @@ export default async function FrontPage() {
 
         {/* ── Micro trends ── */}
         <section id="micro" data-slide>
-          <Banner title="Micro Trends" sub="What individual companies in our three portfolios are doing, apart from the market." />
+          <Banner art="magnifier" page="B2" title="Micro Trends" sub="What individual companies in our three portfolios are doing, apart from the market." />
           <div className="micro-top">
             <div className="verdict">
               <p className="kicker">Today&apos;s verdict</p>
@@ -379,7 +396,7 @@ export default async function FrontPage() {
 
         {/* ── Portfolios ── */}
         <section id="portfolios" data-slide>
-          <Banner title="Portfolios" sub={`Three model portfolios measured against the S&P 500 (${BENCHMARK}), share-weighted and including cash.`} />
+          <Banner art="briefcase" page="C1" title="Portfolios" sub={`Three model portfolios measured against the S&P 500 (${BENCHMARK}), share-weighted and including cash.`} />
           <div className="grid2 tight">
             <div>
               <h2>Leaderboard</h2>
@@ -435,7 +452,7 @@ export default async function FrontPage() {
         </section>
 
         <section id="risk" data-slide>
-          <Banner title="Risk" sub={`How bumpy each portfolio's ride is, using today's holdings over the last ${risk.days} trading days.`} />
+          <Banner art="scale" page="C2" title="Risk" sub={`How bumpy each portfolio's ride is, using today's holdings over the last ${risk.days} trading days.`} />
           <div className="scroll">
             <table className="risk">
               <thead>
@@ -547,9 +564,42 @@ export default async function FrontPage() {
           </section>
         ))}
 
+        {/* ── Stock pages (agate listings) ── */}
+        <section id="stocks" data-slide>
+          <Banner art="candles" page="C3" title="The Stock Pages" sub="Every holding in agate type, as it would appear in the paper's financial section." />
+          <div className="agate">
+            {(() => {
+              const rows = [...allPos].sort((a, b) => a.symbol.localeCompare(b.symbol));
+              const per = Math.ceil(rows.length / 3);
+              return [0, 1, 2].map((c) => (
+                <div className="agate-col" key={c}>
+                  <div className="agate-head"><span>Stock</span><span>Last</span><span>Chg</span><span>%Chg</span><span>52Hi</span><span>52Lo</span><span>Vol</span></div>
+                  {rows.slice(c * per, c * per + per).map((p) => {
+                    const qq = q[p.symbol];
+                    const chgAmt = qq ? qq.change : undefined;
+                    const nearHi = !!(qq?.high52 && qq.price >= qq.high52 * 0.97);
+                    return (
+                      <div className={`agate-row ${nearHi ? "hi" : ""}`} key={p.symbol}>
+                        <span className="sym">{p.symbol}{nearHi ? " ▲" : ""}</span>
+                        <span>{fmt(p.price)}</span>
+                        <span className={(chgAmt ?? 0) >= 0 ? "up" : "down"}>{chgAmt != null ? `${chgAmt >= 0 ? "+" : ""}${chgAmt.toFixed(2)}` : "n/a"}</span>
+                        <span className={p.dayPct >= 0 ? "up" : "down"}>{p.dayPct >= 0 ? "+" : ""}{p.dayPct.toFixed(1)}</span>
+                        <span>{qq?.high52 ? fmt(qq.high52) : "n/a"}</span>
+                        <span>{qq?.low52 ? fmt(qq.low52) : "n/a"}</span>
+                        <span>{qq?.volume ? `${(qq.volume / 1e6).toFixed(1)}m` : "n/a"}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              ));
+            })()}
+          </div>
+          <p className="muted small">▲ trading within 3% of its 52-week high. Vol is shares traded, in millions.</p>
+        </section>
+
         {/* ── Company reports directory ── */}
         <section id="reports" data-slide>
-          <Banner title="Company Reports" sub="Primary sources for every company we own. Start with the annual report's Item 1 (the business) and Item 7 (management's discussion)." />
+          <Banner art="document" page="C4" title="Company Reports" sub="Primary sources for every company we own. Start with the annual report's Item 1 (the business) and Item 7 (management's discussion)." />
           <div className="scroll">
             <table className="directory">
               <thead>
@@ -586,7 +636,7 @@ export default async function FrontPage() {
 
         {/* ── Closing questions ── */}
         <section id="closing" data-slide>
-          <Banner title="Closing Questions" sub="End-of-class prompts from today's moves. Answers should name a cause, a mechanism, and a number." />
+          <Banner art="quill" page="D1" title="Closing Questions" sub="End-of-class prompts from today's moves. Answers should name a cause, a mechanism, and a number." />
           <div className="cq-grid">
             {cq.map((sec) => (
               <div className="cq" key={sec.title}>
@@ -598,7 +648,7 @@ export default async function FrontPage() {
         </section>
         {/* ── Video ── */}
         <section id="watch" data-slide>
-          <Banner title="Watch" sub="Videos picked for this week's lessons." />
+          <Banner art="film" page="D2" title="Watch" sub="Videos picked for this week's lessons." />
           {VIDEOS.length ? (
             <div className="videos">
               {VIDEOS.map((v) => {
@@ -626,7 +676,7 @@ export default async function FrontPage() {
 
         {/* ── Puzzles & games ── */}
         <section id="puzzles" data-slide>
-          <Banner title="Puzzles" sub="The Daily Crossword: finance vocabulary, with a few answers pulled from today's market. A new grid every day." />
+          <Banner art="grid" page="D3" title="Puzzles" sub="The Daily Crossword: finance vocabulary, with a few answers pulled from today's market. A new grid every day." />
           <Crossword rows={puzzle.rows} cols={puzzle.cols} code={code} nums={puzzle.nums} words={xwWords} puzzleId={etDate} />
         </section>
 
@@ -638,7 +688,7 @@ export default async function FrontPage() {
       </main>
       <Footer />
       <AskJack topics={askTopics} asOf={asOf} />
-    </>
+    </div>
   );
 }
 
