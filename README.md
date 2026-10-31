@@ -10,6 +10,7 @@ A daily market recap, three class portfolios, and auto-generated discussion ques
 - **Micro Trends**: a macro-day vs. micro-day verdict, the week's leaders and laggards among our holdings, stocks near 52-week highs and lows, and unusual volume.
 - **Portfolios**: leaderboard vs. SPY, earnings calendar, and each portfolio's chart and holdings with links to 10-K filings.
 - **Closing Questions**: end-of-class prompts written from the day's moves.
+- **Puzzles**: a daily crossword (finance vocabulary plus answers drawn from the day's market) and Up or Down?, a guess-the-move game on six holdings. Add or edit crossword words in `lib/crossword.ts`.
 
 ## Slideshow
 

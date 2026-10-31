@@ -2,6 +2,9 @@ import { Header, Footer, Term, Chg, fmt, usd, CurveChart, LineChart, Reports, re
 import { MARKET, loadAll, Trend } from "../lib/calc";
 import { Quote } from "../lib/data";
 import { BENCHMARK } from "../lib/portfolios";
+import { makeCrossword, Entry } from "../lib/crossword";
+import Crossword from "../components/Crossword";
+import UpOrDown from "../components/UpOrDown";
 import { closing, curveStats, huddle, macroMicroQuestion, macroRead, microRead, setup, upcomingEarnings } from "../lib/prompts";
 
 export const revalidate = 60;
@@ -65,6 +68,33 @@ export default async function FrontPage() {
     companies.set(h.symbol, c);
   }
   const directory = [...companies.values()].sort((a, b) => a.s.localeCompare(b.s));
+
+  // ── Puzzles: answers drawn from today's market ──
+  const etDate = new Date().toLocaleDateString("en-CA", { timeZone: "America/New_York" });
+  const allPos = [...new Map(results.flatMap((r) => r.positions.map((p) => [p.symbol, { ...p, owner: r.p.name.replace(" Portfolio", "").replace("'s", "") }]))).values()];
+  const byDay = [...allPos].sort((a, b) => b.dayPct - a.dayPct);
+  const jm = results.find((r) => r.p.id === "jack-merrick");
+  const jmTop = jm ? [...jm.positions].sort((a, b) => b.weight - a.weight)[0] : undefined;
+  const fedMonth = econ.nextFed ? new Date(econ.nextFed + "T12:00:00Z").toLocaleDateString("en-US", { month: "long" }) : undefined;
+  const daily: Entry[] = [
+    byDay[0] && { answer: byDay[0].symbol, clue: `Ticker of the day's biggest gainer in our portfolios (${byDay[0].dayPct > 0 ? "+" : ""}${byDay[0].dayPct.toFixed(1)}%)` },
+    byDay[byDay.length - 1] && { answer: byDay[byDay.length - 1].symbol, clue: `Ticker of the day's biggest decliner in our portfolios (${byDay[byDay.length - 1].dayPct.toFixed(1)}%)` },
+    jmTop && { answer: jmTop.symbol, clue: "Ticker of the largest position in Jack Merrick's Portfolio" },
+    sectors[0] && { answer: sectors[0].n.split(" ")[0], clue: `First word of the day's best-performing S&P sector (${sectors[0].v > 0 ? "+" : ""}${sectors[0].v.toFixed(1)}%)` },
+    trends.sectors1m[0] && trends.sectors1m[0].n !== sectors[0]?.n && { answer: trends.sectors1m[0].n.split(" ")[0], clue: "First word of the strongest sector over the past month" },
+    fedMonth && { answer: fedMonth, clue: "Month of the Fed's next rate decision" },
+    { answer: mr.verdict.split(" ")[1], clue: "Today was a ___ day, according to our Micro Trends verdict" },
+    micro.leaders[0] && { answer: micro.leaders[0].s, clue: "Ticker of our best performer over the past week" },
+  ].filter(Boolean) as Entry[];
+  const puzzle = makeCrossword(daily, etDate);
+  const code = Buffer.from(puzzle.grid.flat().map((ch) => String.fromCharCode((ch ?? ".").charCodeAt(0) ^ 7)).join(""), "binary").toString("base64");
+  const xwWords = puzzle.words.map((w) => ({ num: w.num, dir: w.dir, row: w.row, col: w.col, len: w.answer.length, clue: w.clue }));
+  // Up or Down: six holdings, a different set each day
+  let h = 0; for (const ch of etDate) h = (h * 31 + ch.charCodeAt(0)) >>> 0;
+  const shuffled = [...allPos].sort((a, b) => ((h ^ a.symbol.charCodeAt(0) * 2654435761) % 997) - ((h ^ b.symbol.charCodeAt(0) * 2654435761) % 997) || a.symbol.localeCompare(b.symbol));
+  const uodItems = shuffled.slice(0, 6).map((p) => ({ s: p.symbol, name: p.name, pct: p.dayPct, owner: p.owner }));
+  const mt = q[BENCHMARK]?.marketTime;
+  const session = mt ? new Date(mt).toLocaleDateString("en-US", { timeZone: "America/New_York", weekday: "long", month: "short", day: "numeric" }) : "latest";
 
   return (
     <>
@@ -518,6 +548,17 @@ export default async function FrontPage() {
               </div>
             ))}
           </div>
+        </section>
+        {/* ── Puzzles & games ── */}
+        <section id="puzzles" data-slide>
+          <Banner title="Puzzles" sub="The Daily Crossword: finance vocabulary, with a few answers pulled from today's market. A new grid every day." />
+          <Crossword rows={puzzle.rows} cols={puzzle.cols} code={code} nums={puzzle.nums} words={xwWords} puzzleId={etDate} />
+        </section>
+
+        <section className="card" data-slide>
+          <h2>Up or Down? <span className="muted small">six of our holdings, a new set each day</span></h2>
+          <p className="deck-sm">Did each stock rise or fall in the {session} session? Make your call, then see the answer.</p>
+          <UpOrDown items={uodItems} session={session} />
         </section>
       </main>
       <Footer />
