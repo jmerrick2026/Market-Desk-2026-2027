@@ -14,7 +14,7 @@ const KEY_EVENTS: [RegExp, string][] = [
   [/average hourly earnings/i, "Wage growth: a key input into future inflation."],
   [/^core cpi|^cpi/i, "Consumer inflation. A hot print pushes yields up and growth stocks down."],
   [/^core ppi|^ppi/i, "Producer (wholesale) inflation, an early read on consumer prices."],
-  [/pce/i, "The Fed's preferred inflation gauge."],
+  [/^(core )?pce/i, "The Fed's preferred inflation gauge."],
   [/^gdp/i, "Total output of the economy, the broadest growth measure."],
   [/retail sales/i, "Consumer spending, about two-thirds of the U.S. economy."],
   [/ism (manufacturing|non-manufacturing|services) pmi/i, "Purchasing managers' survey: above 50 means expansion."],
@@ -55,11 +55,12 @@ async function fetchDay(date: string): Promise<EconEvent[]> {
     const name = clean(r.eventName) ?? "";
     const hit = KEY_EVENTS.find(([re]) => re.test(name));
     if (!hit) continue;
-    // Times arrive in GMT; show Eastern time
+    // The feed's "gmt" column is really a fixed UTC-4 clock (e.g. the 8:30 AM ET jobs report
+    // shows as 09:30 in winter). Convert from UTC-4 to true Eastern time.
     const [hh, mm] = String(r.gmt ?? "").split(":").map(Number);
     let time = "";
     if (isFinite(hh) && isFinite(mm)) {
-      const t = new Date(`${date}T${String(hh).padStart(2, "0")}:${String(mm).padStart(2, "0")}:00Z`);
+      const t = new Date(`${date}T${String(hh).padStart(2, "0")}:${String(mm).padStart(2, "0")}:00-04:00`);
       time = t.toLocaleTimeString("en-US", { timeZone: "America/New_York", hour: "numeric", minute: "2-digit" });
     }
     out.push({ date, time, name, actual: clean(r.actual), consensus: clean(r.consensus), previous: clean(r.previous), why: hit[1] });
