@@ -127,6 +127,10 @@
   .article-cta { font: 600 13px var(--sans); letter-spacing: .12em; text-transform: uppercase; color: var(--slate); border-bottom: 1px solid var(--slate); padding-bottom: 2px; }
   .press-head { font: 600 12px var(--sans); letter-spacing: .22em; text-transform: uppercase; color: var(--brass); margin: 40px 0 0; }
   .article.press { border-left-color: var(--slate); margin-top: 18px; }
+  .video { margin: 18px 0 0; max-width: 860px; }
+  .video .frame { position: relative; aspect-ratio: 16 / 9; background: #111; border-radius: 14px; overflow: hidden; border: 1px solid var(--rule); }
+  .video iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+  .video figcaption { margin-top: 8px; font-size: 14px; }
   .article.mag:hover { transform: none; box-shadow: none; }
   .mag-btns { display: flex; gap: 12px; flex-wrap: wrap; }
   .mag-btn { font: 600 12.5px var(--sans); letter-spacing: .1em; text-transform: uppercase; text-decoration: none; padding: 11px 18px; border-radius: 999px; border: 1px solid var(--slate); color: var(--slate); transition: background .2s, color .2s; }
@@ -357,6 +361,17 @@
           <a class="mag-btn solid" href="https://www.ransomevergladesschool.com/RE-log/2026/fall/42/" target="_blank" rel="noopener">2 · Jump to the story ↗</a>
         </div>
       </div>
+      <a class="article press reveal" href="https://documents.miamigov.com/WebLink/DocView.aspx?id=1480500&amp;dbid=0&amp;repo=Administration&amp;cr=1" target="_blank" rel="noopener">
+        <div class="article-meta"><span>City of Miami</span><span>2025</span></div>
+        <h3>Mayoral Proclamation for Community Leadership</h3>
+        <p>Official proclamation from the Mayor of the City of Miami recognizing Jack's community leadership.</p>
+        <span class="article-cta">View the proclamation ↗</span>
+      </a>
+      <h3 class="press-head reveal">On video</h3>
+      <figure class="video reveal">
+        <div class="frame"><iframe src="https://www.youtube-nocookie.com/embed/qLSyVKE3waw" title="Video featuring Jack Merrick" loading="lazy" allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></div>
+        <figcaption><a class="inline-link" href="https://www.youtube.com/watch?v=qLSyVKE3waw" target="_blank" rel="noopener">Watch on YouTube ↗</a></figcaption>
+      </figure>
     </div>
   </section>
 
@@ -370,7 +385,7 @@
         <div class="honor star reveal"><h4>USA Water Polo Academic All-American</h4><span>2024 · 2025 · 2026</span></div>
         <div class="honor star reveal"><h4>Water Polo Olympic Development National MVP</h4><span>2024 · 2025 · 2026</span></div>
         <div class="honor reveal"><h4>Mike Stokes Character Leadership Award</h4><span>2026</span></div>
-        <div class="honor reveal"><h4>City of Miami Mayoral Proclamation for Community Leadership</h4><span>2025</span></div>
+        <div class="honor reveal"><h4><a class="inline-link" href="https://documents.miamigov.com/WebLink/DocView.aspx?id=1480500&amp;dbid=0&amp;repo=Administration&amp;cr=1" target="_blank" rel="noopener">City of Miami Mayoral Proclamation for Community Leadership</a></h4><span>2025</span></div>
         <div class="honor reveal"><h4>Miami Herald First Team All-Dade, Water Polo</h4><span>2024 · 2025 · 2026</span></div>
         <div class="honor reveal"><h4>AP Scholar</h4><span>2025 · 2026</span></div>
         <div class="honor reveal"><h4>Mu Alpha Theta Math and Science National Honor Societies</h4><span>2025 · 2026</span></div>
