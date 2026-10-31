@@ -6,6 +6,7 @@ import { makeCrossword, Entry } from "../lib/crossword";
 import Crossword from "../components/Crossword";
 import UpOrDown from "../components/UpOrDown";
 import AskJack from "../components/AskJack";
+import { VIDEOS, toEmbed } from "../lib/videos";
 import { buildAskJack } from "../lib/askjack";
 import { closing, curveStats, huddle, macroMicroQuestion, macroRead, microRead, setup, upcomingEarnings } from "../lib/prompts";
 
@@ -104,6 +105,48 @@ export default async function FrontPage() {
     <>
       <Header />
       <main className="wrap">
+        {/* ── 15-minute recap ── */}
+        <section id="recap" className="recap" data-slide data-brief>
+          <div className="recap-head">
+            <p className="kicker">If you only have 15 minutes</p>
+            <h2>The Recap</h2>
+            <p className="recap-hl">{s.headline}</p>
+          </div>
+          <div className="recap-grid">
+            <div className="recap-block">
+              <p className="mins">Minutes 0–3 · The tape</p>
+              <div className="chips">
+                {[["S&P 500", "^GSPC"], ["Nasdaq 100", "^NDX"], ["Russell 2000", "^RUT"], ["Crude oil", "CL=F"], ["Gold", "GC=F"], ["Bitcoin", "BTC-USD"]].map(([n, k]) => (
+                  <div className="chip" key={k}><span>{n}</span><b><Chg v={q[k]?.changePct} /></b></div>
+                ))}
+                <div className="chip"><span>10-yr yield</span><b>{cs?.y10 != null ? `${cs.y10.toFixed(2)}%` : "n/a"}</b></div>
+                <div className="chip"><span>VIX</span><b>{fmt(q["^VIX"]?.price, 1)}</b></div>
+              </div>
+              {sectors.length > 1 && <p className="recap-note">Best sector: <b>{sectors[0].n}</b> <Chg v={sectors[0].v} />. Worst: <b>{sectors[sectors.length - 1].n}</b> <Chg v={sectors[sectors.length - 1].v} />.</p>}
+            </div>
+            <div className="recap-block">
+              <p className="mins">Minutes 3–7 · The big picture</p>
+              <ul className="recap-list">{macroLines.slice(0, 3).map((l, i) => <li key={i}>{l}</li>)}</ul>
+              {econ.nextFed && <p className="recap-note">Next Fed decision: <b>{new Date(econ.nextFed + "T12:00:00Z").toLocaleDateString("en-US", { month: "short", day: "numeric" })}</b> ({econ.fedIn} days).{econ.ahead[0] ? <> Next big release: <b>{econ.ahead[0].name}</b>, {dayLabel(econ.ahead[0].date)}.</> : null}</p>}
+            </div>
+            <div className="recap-block">
+              <p className="mins">Minutes 7–11 · Our portfolios</p>
+              <ol className="recap-board">
+                {board.map((r) => (
+                  <li key={r.p.id}><span>{r.p.name.replace(" Portfolio", "")}</span><span className="num">Today <Chg v={r.dayPct} /></span><span className="num">Since start <Chg v={r.sincePct} /></span></li>
+                ))}
+                <li className="bench"><span>S&amp;P 500 (SPY)</span><span className="num">Today <Chg v={results[0]?.benchDayPct} /></span><span className="num">Since start <Chg v={results[0]?.benchSincePct} /></span></li>
+              </ol>
+              {byDay.length > 1 && <p className="recap-note">Top mover: <b>{byDay[0].symbol}</b> <Chg v={byDay[0].dayPct} />. Biggest drag: <b>{byDay[byDay.length - 1].symbol}</b> <Chg v={byDay[byDay.length - 1].dayPct} />. {mr.verdict}.</p>}
+            </div>
+            <div className="recap-block discuss">
+              <p className="mins">Minutes 11–15 · Discuss</p>
+              <p className="recap-q">{prompts[0]}</p>
+              <p className="recap-q alt">{macroMicroQuestion(micro, trends)}</p>
+            </div>
+          </div>
+        </section>
+
         {/* ── Front page ── */}
         <div className="front" id="front" data-slide>
           <article className="lede story">
@@ -120,7 +163,7 @@ export default async function FrontPage() {
         </div>
 
         {/* ── Macro trends ── */}
-        <section id="macro" data-slide>
+        <section id="macro" data-slide data-brief>
           <Banner title="Macro Trends" sub="The big forces that move every stock at once: rates, currencies, commodities, and fear." />
           <div className="macro-grid">
             <div className="cols-narrow">{macroLines.map((l, i) => <p key={i}>{l}</p>)}</div>
@@ -378,7 +421,7 @@ export default async function FrontPage() {
           </div>
         </section>
 
-        <section id="map" className="card" data-slide>
+        <section id="map" className="card" data-slide data-brief>
           <h2>Holdings Map <span className="muted small">each block is sized by its weight in the portfolio and shaded by today&apos;s move</span></h2>
           <div className="maps">
             {results.map((r) => (
@@ -553,13 +596,41 @@ export default async function FrontPage() {
             ))}
           </div>
         </section>
+        {/* ── Video ── */}
+        <section id="watch" data-slide>
+          <Banner title="Watch" sub="Videos picked for this week's lessons." />
+          {VIDEOS.length ? (
+            <div className="videos">
+              {VIDEOS.map((v) => {
+                const e = toEmbed(v.url);
+                return (
+                  <figure key={v.url} className="video">
+                    <div className="frame">
+                      {e?.kind === "iframe" ? (
+                        <iframe src={e.src} title={v.title} loading="lazy" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen />
+                      ) : e?.kind === "file" ? (
+                        <video src={e.src} controls preload="metadata" />
+                      ) : (
+                        <a href={v.url} target="_blank" rel="noreferrer">Open video</a>
+                      )}
+                    </div>
+                    <figcaption><b>{v.title}</b>{v.note && <span> · {v.note}</span>}</figcaption>
+                  </figure>
+                );
+              })}
+            </div>
+          ) : (
+            <p className="muted">No videos yet. Add YouTube, Vimeo, or .mp4 links to <code>lib/videos.ts</code> and they will appear here.</p>
+          )}
+        </section>
+
         {/* ── Puzzles & games ── */}
         <section id="puzzles" data-slide>
           <Banner title="Puzzles" sub="The Daily Crossword: finance vocabulary, with a few answers pulled from today's market. A new grid every day." />
           <Crossword rows={puzzle.rows} cols={puzzle.cols} code={code} nums={puzzle.nums} words={xwWords} puzzleId={etDate} />
         </section>
 
-        <section className="card" data-slide>
+        <section className="card" data-slide data-brief>
           <h2>Up or Down? <span className="muted small">six of our holdings, a new set each day</span></h2>
           <p className="deck-sm">Did each stock rise or fall in the {session} session? Make your call, then see the answer.</p>
           <UpOrDown items={uodItems} session={session} />

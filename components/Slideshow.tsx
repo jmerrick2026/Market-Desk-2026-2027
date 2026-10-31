@@ -1,19 +1,21 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 
 /**
  * Turns every element marked data-slide on the page into a full-screen slide.
  * Keys: → / Space / PageDown = next, ← / PageUp = back, Home / End, Esc = exit.
- * Open the page with ?slides=1 to start in slideshow mode.
+ * Open the page with ?slides=1 to start in slideshow mode, or ?slides=brief for the 15-minute recap.
+ * Elements marked data-brief form the short "15-minute recap" deck.
  */
 export default function Slideshow({ title, date }: { title: string; date: string }) {
   const [on, setOn] = useState(false);
   const [i, setI] = useState(0);
   const [n, setN] = useState(0);
+  const mode = useRef<"slide" | "brief">("slide");
 
-  const slides = () => Array.from(document.querySelectorAll<HTMLElement>("[data-slide]"));
+  const slides = () => Array.from(document.querySelectorAll<HTMLElement>(mode.current === "brief" ? "[data-brief]" : "[data-slide]"));
 
   const show = useCallback((idx: number) => {
     const all = slides();
@@ -24,7 +26,9 @@ export default function Slideshow({ title, date }: { title: string; date: string
     setN(all.length);
   }, []);
 
-  const start = useCallback((idx = 0) => {
+  const start = useCallback((idx = 0, m: "slide" | "brief" = "slide") => {
+    mode.current = m;
+    document.querySelectorAll(".slide-active").forEach((el) => el.classList.remove("slide-active"));
     document.body.classList.add("presenting");
     setOn(true);
     show(idx);
@@ -33,13 +37,15 @@ export default function Slideshow({ title, date }: { title: string; date: string
 
   const stop = useCallback(() => {
     document.body.classList.remove("presenting");
-    slides().forEach((el) => el.classList.remove("slide-active"));
+    document.querySelectorAll(".slide-active").forEach((el) => el.classList.remove("slide-active"));
     setOn(false);
     try { if (document.fullscreenElement) document.exitFullscreen().catch(() => {}); } catch {}
   }, []);
 
   useEffect(() => {
-    if (new URLSearchParams(window.location.search).get("slides") === "1") start(0);
+    const v = new URLSearchParams(window.location.search).get("slides");
+    if (v === "1") start(0);
+    else if (v === "brief") start(0, "brief");
   }, [start]);
 
   useEffect(() => {
@@ -57,14 +63,19 @@ export default function Slideshow({ title, date }: { title: string; date: string
 
   if (!on) {
     return (
-      <button className="present-btn" onClick={() => start(0)} title="Present this page as a slideshow (arrow keys to move, Esc to exit)">
-        ▶ Present
-      </button>
+      <>
+        <button className="present-btn" onClick={() => start(0, "brief")} title="A 4-slide recap for a 15-minute class">
+          ⏱ 15-Min Recap
+        </button>
+        <button className="present-btn" onClick={() => start(0)} title="Present the full page as a slideshow (arrow keys to move, Esc to exit)">
+          ▶ Present
+        </button>
+      </>
     );
   }
   return createPortal(
     <div className="slide-chrome" role="toolbar" aria-label="Slideshow controls">
-      <span className="slide-brand">The {title} <em>· {date}</em></span>
+      <span className="slide-brand">The {title} <em>· {mode.current === "brief" ? "15-minute recap · " : ""}{date}</em></span>
       <span className="slide-ctrl">
         <button onClick={() => show(i - 1)} disabled={i === 0} aria-label="Previous slide">←</button>
         <span className="slide-count">{i + 1} / {n}</span>

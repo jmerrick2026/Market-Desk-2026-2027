@@ -74,7 +74,7 @@ export const PORTFOLIOS: Portfolio[] = [
 ];
 
 export const SITE = {
-  title: "Market Monitor",
+  title: "Merrick Market Monitor",
   tagline: "Markets · Portfolios · Trends",
   byline: "Jack Merrick",
 };

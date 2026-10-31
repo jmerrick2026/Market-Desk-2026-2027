@@ -31,7 +31,7 @@ a { color: var(--ink); }
 /* ── Masthead ── */
 .masthead { padding-top: 14px; margin-bottom: 26px; text-align: center; }
 .ears { display: flex; justify-content: space-between; font: 600 11px var(--label); text-transform: uppercase; letter-spacing: .12em; color: var(--ink-soft); border-bottom: 1px solid var(--rule); padding-bottom: 8px; }
-.nameplate { display: block; font: 400 clamp(46px, 8.5vw, 96px)/1.05 var(--nameplate); color: var(--ink); text-decoration: none; margin: 10px 0 6px; }
+.nameplate { display: block; font: 400 clamp(34px, 6.6vw, 80px)/1.08 var(--nameplate); white-space: nowrap; color: var(--ink); text-decoration: none; margin: 10px 0 6px; }
 .dateline { display: flex; justify-content: space-between; gap: 12px; font: 400 13px var(--body); font-style: italic; border-top: 3px double var(--rule); border-bottom: 1px solid var(--rule); padding: 6px 2px; }
 nav { display: flex; justify-content: center; gap: 0; border-bottom: 3px double var(--rule); }
 nav a { font: 600 12px var(--label); text-transform: uppercase; letter-spacing: .14em; text-decoration: none; padding: 9px 22px; color: var(--ink-soft); border-right: 1px solid var(--hair); }
@@ -384,3 +384,43 @@ body.presenting main > .slide-active.front { padding-top: 4vh; }
 .aj-foot p { margin: 10px 0 0; font-size: 12.5px; line-height: 1.4; color: #6a6480; }
 body.presenting .aj-launch, body.presenting .aj-panel { display: none; }
 @media print { .aj-launch, .aj-panel { display: none; } }
+
+/* ── 15-minute recap ── */
+.recap { border: 3px double var(--rule); padding: 16px 20px 18px; margin-bottom: 30px; background: rgba(255,253,248,.55); }
+.recap-head { display: flex; align-items: baseline; gap: 16px; flex-wrap: wrap; border-bottom: 1px solid var(--rule); padding-bottom: 10px; margin-bottom: 14px; }
+.recap-head .kicker { margin: 0; width: 100%; }
+.recap-head h2 { font: 800 34px/1 var(--head); margin: 0; }
+.recap-hl { font: italic 600 19px/1.3 var(--head); margin: 0; color: var(--ink-soft); flex: 1; }
+.recap-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0; }
+.recap-block { padding: 6px 20px 12px; border-left: 1px solid var(--hair); }
+.recap-block:nth-child(odd) { border-left: 0; padding-left: 0; }
+.recap-block:nth-child(-n+2) { border-bottom: 1px solid var(--hair); margin-bottom: 8px; }
+.mins { font: 600 11px var(--label); text-transform: uppercase; letter-spacing: .14em; margin: 0 0 8px; color: var(--down); }
+.chips { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+.chip { border: 1px solid var(--hair); padding: 6px 8px; display: flex; flex-direction: column; background: var(--paper); }
+.chip > span { font: 600 10px var(--label); text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
+.chip b { font: 800 18px var(--head); }
+.recap-note { font-size: 14.5px; margin: 10px 0 0; }
+.recap-list { margin: 0; padding-left: 18px; font-size: 15px; }
+.recap-list li { margin-bottom: 6px; }
+.recap-board { list-style: none; margin: 0; padding: 0; }
+.recap-board li { display: grid; grid-template-columns: 1.2fr 1fr 1.2fr; gap: 8px; padding: 5px 0; border-bottom: 1px dotted var(--hair); font-size: 15px; }
+.recap-board li span:first-child { font-weight: 600; }
+.recap-board li.bench { color: var(--muted); font-style: italic; border-bottom: 0; }
+.recap-board .num { font-size: 13.5px; text-align: right; }
+.recap-q { font: 600 16px/1.4 var(--head); margin: 0 0 10px; padding-left: 12px; border-left: 3px solid var(--ink); }
+.recap-q.alt { font-weight: 400; font-family: var(--body); border-left-color: var(--hair); }
+@media (max-width: 760px) {
+  .recap-grid { grid-template-columns: 1fr; }
+  .recap-block { border-left: 0; padding-left: 0; border-bottom: 1px solid var(--hair); }
+  .chips { grid-template-columns: repeat(2, 1fr); }
+}
+.present-btn + .present-btn { margin-left: 4px; }
+
+/* ── Video ── */
+.videos { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 22px; }
+.video { margin: 0; }
+.video .frame { position: relative; aspect-ratio: 16 / 9; background: var(--ink); border: 1px solid var(--rule); }
+.video iframe, .video video { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+.video .frame a { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: var(--paper); font: 600 14px var(--label); }
+.video figcaption { font: 15px var(--body); margin-top: 6px; border-top: 0; padding-top: 0; }

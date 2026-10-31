@@ -4,6 +4,9 @@ A daily market recap, three class portfolios, and auto-generated discussion ques
 
 ## One page, in sections
 
+- **The Recap** (top): a 15-minute version of the day in four timed blocks. The **⏱ 15-Min Recap** button presents it as a 4-slide deck (or add `?slides=brief` to the address).
+- **Watch**: embedded videos. Paste YouTube, Vimeo, or .mp4 links into `lib/videos.ts`.
+
 - **The Session**: a written read of the day plus three Huddle questions.
 - **Macro Trends**: rates, the dollar, oil, copper, gold, VIX and bitcoin over 1 day, 1 week and 1 month; growth vs. value, small vs. large, cyclicals vs. defensives, breadth; 1-month sector rotation.
 - **Markets**: U.S. and world indices, the sector board, rates/dollar/commodities ETFs, crypto, and the Treasury yield curve.

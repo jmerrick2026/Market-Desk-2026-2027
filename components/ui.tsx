@@ -56,6 +56,7 @@ export function Header() {
         <a href="#risk">Risk</a>
         <a href="#reports">Reports</a>
         <a href="#closing">Closing Questions</a>
+        <a href="#watch">Watch</a>
         <a href="#puzzles">Puzzles</a>
         <Slideshow title={SITE.title} date={date} />
       </nav>
