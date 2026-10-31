@@ -15,5 +15,11 @@ export const GLOSSARY: Record<string, string> = {
   sector: "A group of companies in the same line of business. The SPDR sector ETFs (XLK, XLE, and so on) split the S&P 500 into 11 sectors.",
   earnings: "The quarterly report where a public company discloses revenue, profit, and guidance. Stocks often move sharply on earnings day.",
   "10-K": "The annual report every U.S. public company files with the SEC. Item 1 describes the business; Item 7 is management's discussion of results.",
+  breadth: "How many stocks are joining a move. Broad rallies (most stocks rising) are healthier than narrow ones led by a few giants.",
+  rotation: "Investors shifting money from one sector or style to another, for example out of tech and into energy, as their outlook changes.",
+  "52-week high": "The highest price a stock has closed at over the past year. Stocks near their highs have momentum; stocks near their lows are out of favor.",
+  "unusual volume": "Trading volume well above the stock's 3-month daily average. It usually means news, and that big institutions are buying or selling.",
+  macro: "Big-picture forces that affect the whole market: interest rates, inflation, the dollar, oil, economic growth, and the Fed.",
+  micro: "Company-specific forces: earnings, guidance, new products, management changes, lawsuits.",
   "20-F": "The annual report foreign companies listed in the U.S. file with the SEC instead of a 10-K.",
 };

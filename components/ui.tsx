@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Slideshow from "./Slideshow";
 import { GLOSSARY } from "../lib/glossary";
 import { SITE } from "../lib/portfolios";
 import { DEMO } from "../lib/data";
@@ -25,7 +26,7 @@ export const fmt = (v?: number, d = 2) =>
   v == null || !isFinite(v) ? "n/a" : v.toLocaleString("en-US", { minimumFractionDigits: d, maximumFractionDigits: d });
 export const usd = (v?: number, d = 0) => (v == null ? "n/a" : (v < 0 ? "-$" : "$") + fmt(Math.abs(v), d));
 
-export function Header({ active }: { active: "markets" | "portfolios" | "closing" }) {
+export function Header() {
   const now = new Date();
   const tz = { timeZone: "America/New_York" } as const;
   const date = now.toLocaleDateString("en-US", { ...tz, weekday: "long", month: "long", day: "numeric", year: "numeric" });
@@ -45,9 +46,13 @@ export function Header({ active }: { active: "markets" | "portfolios" | "closing
         <span>Edited by {SITE.byline}</span>
       </div>
       <nav>
-        <Link className={active === "markets" ? "on" : ""} href="/">Markets</Link>
-        <Link className={active === "portfolios" ? "on" : ""} href="/portfolios">Portfolios</Link>
-        <Link className={active === "closing" ? "on" : ""} href="/closing-questions">Closing Questions</Link>
+        <a href="#front">The Session</a>
+        <a href="#macro">Macro</a>
+        <a href="#markets">Markets</a>
+        <a href="#micro">Micro</a>
+        <a href="#portfolios">Portfolios</a>
+        <a href="#closing">Closing Questions</a>
+        <Slideshow title={SITE.title} date={date} />
       </nav>
       {DEMO && <p className="demo">Demo mode: prices below are simulated. Remove the DEMO setting to show live data.</p>}
     </header>

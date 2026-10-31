@@ -1,6 +1,7 @@
 import YahooFinance from "yahoo-finance2";
+import { unstable_cache } from "next/cache";
 
-const yf = new YahooFinance({ suppressNotices: ["yahooSurvey"] } as any);
+const yf = new YahooFinance({ suppressNotices: ["yahooSurvey"], queue: { concurrency: 6 } } as any);
 
 export const DEMO = process.env.DEMO === "1";
 
@@ -13,6 +14,11 @@ export type Quote = {
   changePct: number;
   earnings?: string; // ISO date of next earnings
   marketTime?: string;
+  high52?: number;
+  low52?: number;
+  volume?: number;
+  avgVolume?: number;
+  avg50?: number;
 };
 
 export type Bar = { date: string; close: number };
@@ -27,13 +33,13 @@ const DEMO_LEVEL: Record<string, number> = {
   "^GSPC": 6720, "^DJI": 46900, "^IXIC": 22850, "^NDX": 25100, "^RUT": 2440, "^VIX": 19.4,
   "^FTSE": 9420, "^GDAXI": 24100, "^N225": 47800, "^HSI": 25600, "^STOXX50E": 5520,
   "BTC-USD": 108000, "ETH-USD": 3900, "SOL-USD": 186,
+  "^TNX": 4.4, "^IRX": 3.9, "DX-Y.NYB": 99, "CL=F": 66, "HG=F": 4.9, "GC=F": 3900, SPY: 670,
 };
 function demoHistory(symbol: string, from: string): Bar[] {
   const r = seed(symbol + "h");
   let p = DEMO_LEVEL[symbol] ?? 20 + r() * 400;
   const out: Bar[] = [];
-  const d = new Date(from + "T12:00:00Z");
-  d.setUTCDate(d.getUTCDate() - 5);
+  const d = new Date("2026-07-01T12:00:00Z"); // fixed start so every caller sees the same series
   const end = new Date();
   while (d <= end) {
     const wd = d.getUTCDay();
@@ -43,10 +49,12 @@ function demoHistory(symbol: string, from: string): Bar[] {
     }
     d.setUTCDate(d.getUTCDate() + 1);
   }
-  return out;
+  const cut = new Date(from + "T12:00:00Z");
+  cut.setUTCDate(cut.getUTCDate() - 7);
+  return out.filter((b) => b.date >= cut.toISOString().slice(0, 10));
 }
 function demoQuote(symbol: string): Quote {
-  const h = demoHistory(symbol, "2026-08-25");
+  const h = demoHistory(symbol, "2026-07-08");
   const price = h[h.length - 1].close;
   const prevClose = h[h.length - 2].close;
   const r = seed(symbol + "e");
@@ -56,6 +64,11 @@ function demoQuote(symbol: string): Quote {
     symbol, name: symbol, price, prevClose,
     change: price - prevClose, changePct: ((price - prevClose) / prevClose) * 100,
     earnings: e.toISOString().slice(0, 10),
+    high52: Math.max(...h.map((b) => b.close)) * (1 + r() * 0.04),
+    low52: Math.min(...h.map((b) => b.close)) * (1 - r() * 0.1),
+    volume: 1e6 * (1 + r() * 3),
+    avgVolume: 1e6 * 1.4,
+    avg50: h.slice(-50).reduce((a, b) => a + b.close, 0) / Math.min(50, h.length),
   };
 }
 
@@ -78,6 +91,11 @@ export async function getQuotes(symbols: string[]): Promise<Record<string, Quote
         changePct: q.regularMarketChangePercent ?? ((q.regularMarketPrice - prev) / prev) * 100,
         earnings: toISO(q.earningsTimestampStart ?? q.earningsTimestamp),
         marketTime: q.regularMarketTime ? new Date(q.regularMarketTime).toISOString() : undefined,
+        high52: q.fiftyTwoWeekHigh,
+        low52: q.fiftyTwoWeekLow,
+        volume: q.regularMarketVolume,
+        avgVolume: q.averageDailyVolume3Month,
+        avg50: q.fiftyDayAverage,
       };
     }
   } catch (err) {
@@ -92,15 +110,26 @@ function toISO(d: any): string | undefined {
   return isNaN(+dt) ? undefined : dt.toISOString().slice(0, 10);
 }
 
-export async function getHistory(symbol: string, from: string): Promise<Bar[]> {
-  if (DEMO) return demoHistory(symbol, from);
-  try {
+// Daily history changes once a day, so cache it for 30 minutes instead of refetching every minute.
+const cachedChart = unstable_cache(
+  async (symbol: string, from: string): Promise<Bar[]> => {
     const start = new Date(from + "T00:00:00Z");
     start.setUTCDate(start.getUTCDate() - 7); // make sure the inception close is included
     const res: any = await (yf as any).chart(symbol, { period1: start, interval: "1d" }, { validateResult: false });
-    return (res.quotes ?? [])
+    const bars = (res.quotes ?? [])
       .filter((q: any) => q.close != null)
       .map((q: any) => ({ date: new Date(q.date).toISOString().slice(0, 10), close: q.close }));
+    if (!bars.length) throw new Error("empty history"); // never cache a failure
+    return bars;
+  },
+  ["yahoo-chart-v1"],
+  { revalidate: 1800 }
+);
+
+export async function getHistory(symbol: string, from: string): Promise<Bar[]> {
+  if (DEMO) return demoHistory(symbol, from);
+  try {
+    return await cachedChart(symbol, from);
   } catch (err) {
     console.error("Yahoo chart failed", symbol, err);
     return [];

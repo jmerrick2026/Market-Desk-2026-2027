@@ -1,5 +1,5 @@
 import { Quote, Curve } from "./data";
-import { MARKET, PortfolioResult } from "./calc";
+import { MARKET, PortfolioResult, Trends, Micro } from "./calc";
 
 const pct = (v: number) => `${v > 0 ? "+" : ""}${v.toFixed(2)}%`;
 const name = (list: readonly (readonly [string, string])[], s: string) => list.find(([k]) => k === s)?.[1] ?? s;
@@ -27,7 +27,10 @@ export function setup(q: Record<string, Quote>, c: Curve | null): { headline: st
   const big = Math.abs(spx.changePct) >= 1;
   const dir = spx.changePct >= 0 ? "higher" : "lower";
   const growthLed = ndx && rut ? ndx.changePct - spx.changePct : 0;
-  const style = Math.abs(growthLed) < 0.3 ? "broad-based" : growthLed > 0 ? "growth-led" : "with growth lagging";
+  const upDay = spx.changePct >= 0;
+  const style = Math.abs(growthLed) < 0.3 ? "in a broad-based move"
+    : growthLed > 0 ? (upDay ? "led by growth stocks" : "though growth stocks held up best")
+    : (upDay ? "even as growth stocks lagged" : "dragged down by growth stocks");
   const headline = `Stocks finished ${big ? "sharply " : ""}${dir}, ${style}.`;
   const body: string[] = [];
   body.push(`The S&P 500 moved ${pct(spx.changePct)}${ndx ? `, the Nasdaq 100 ${pct(ndx.changePct)}` : ""}${rut ? `, and the small-cap Russell 2000 ${pct(rut.changePct)}` : ""}.`);
@@ -133,3 +136,43 @@ export const upcomingEarnings = (results: PortfolioResult[], days = 45) => {
 };
 
 export { name as labelFor };
+
+const bp = (v: number) => `${v > 0 ? "+" : ""}${Math.round(v)} bp`;
+const up = (v: number, a: string, b: string) => (v >= 0 ? a : b);
+
+/** Plain-English read of the macro picture over the past month. */
+export function macroRead(t: Trends): string[] {
+  const out: string[] = [];
+  const get = (s: string) => t.macro.find((m) => m.s === s);
+  const tnx = get("^TNX"), dxy = get("DX-Y.NYB"), oil = get("CL=F"), cu = get("HG=F"), vix = get("^VIX");
+  if (tnx?.m1 != null && tnx.level != null)
+    out.push(`The 10-year yield is ${tnx.level.toFixed(2)}%, ${up(tnx.m1, "up", "down")} ${Math.abs(Math.round(tnx.m1))} bp over the past month. ${tnx.m1 > 15 ? "Rising rates are a headwind for long-duration growth stocks." : tnx.m1 < -15 ? "Falling rates are a tailwind for growth stocks and rate-sensitive sectors." : "Rates have been roughly stable, so they are not the main story."}`);
+  const bits: string[] = [];
+  if (dxy?.m1 != null) bits.push(`the dollar is ${pct(dxy.m1)}`);
+  if (oil?.m1 != null) bits.push(`crude oil is ${pct(oil.m1)}`);
+  if (cu?.m1 != null) bits.push(`copper is ${pct(cu.m1)}`);
+  if (bits.length) out.push(`Over the same month, ${bits.join(", ")}.${cu?.m1 != null && oil?.m1 != null ? (cu.m1 > 0 && oil.m1 > 0 ? " Commodities rising together points to firm global demand." : cu.m1 < 0 && oil.m1 < 0 ? " Commodities falling together hints at cooling global growth." : "") : ""}`);
+  const gv = t.styles.find((x) => x.a === "IWF"), br = t.styles.find((x) => x.a === "RSP");
+  if (gv?.m1 != null) out.push(`${gv.m1 >= 0 ? "Growth is beating value" : "Value is beating growth"} by ${Math.abs(gv.m1).toFixed(1)} points this month${br?.m1 != null ? `, and the typical stock is ${br.m1 >= 0 ? "keeping pace with" : "lagging"} the mega-caps (${br.m1 >= 0 ? "+" : ""}${br.m1.toFixed(1)} pts), ${br.m1 >= 0 ? "a sign of healthy, broad participation" : "so a few giants are doing the heavy lifting"}` : ""}.`);
+  if (t.sectors1m.length >= 2) {
+    const a = t.sectors1m, top = a.slice(0, 2), bot = a.slice(-2);
+    out.push(`Over the past month the strongest sectors were ${top.map((x) => `${x.n} (${pct(x.m1)})`).join(" and ")}; the weakest were ${bot.map((x) => `${x.n} (${pct(x.m1)})`).join(" and ")}. That gap is the rotation to explain.`);
+  }
+  if (vix?.level != null && vix.m1 != null) out.push(`The VIX is ${vix.level.toFixed(1)}, ${up(vix.m1, "up", "down")} ${Math.abs(vix.m1).toFixed(1)} points on the month.`);
+  return out;
+}
+
+/** Plain-English read of what is happening inside our holdings. */
+export function microRead(m: Micro): { verdict: string; lines: string[] } {
+  const verdict = m.sameDirPct >= 75 ? "A macro day" : m.sameDirPct <= 60 ? "A micro day" : "A mixed day";
+  const lines: string[] = [];
+  lines.push(`${Math.round(m.sameDirPct)}% of our ${m.count} holdings moved the same direction as the S&P 500 today. ${m.sameDirPct >= 75 ? "When nearly everything moves together, big-picture forces (rates, the Fed, the economy) are in charge." : m.sameDirPct <= 60 ? "When stocks split from the market, company-specific news (earnings, guidance, product launches) is in charge." : "Big-picture forces and company news are sharing the wheel."}`);
+  lines.push(`${m.advancers} of ${m.count} advanced today, and ${m.above50} trade above their 50-day average${m.above50 / Math.max(1, m.count) > 0.6 ? ", so the medium-term trend across our names is up" : m.above50 / Math.max(1, m.count) < 0.4 ? ", so most of our names are in medium-term downtrends" : ""}.`);
+  return { verdict, lines };
+}
+
+export function macroMicroQuestion(m: Micro, t: Trends): string {
+  const v = microRead(m).verdict.toLowerCase();
+  const lead = m.leaders[0];
+  return `Today looked like ${v} (${Math.round(m.sameDirPct)}% of our holdings moved with the S&P 500).${lead ? ` Pick ${lead.s}, our best performer this week (${pct(lead.w1 ?? 0)}): was its move driven by a macro trend from the top of the page or by company news? Cite one number for each side.` : ""}`;
+}

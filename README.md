@@ -2,11 +2,18 @@
 
 A daily market recap, three class portfolios, and auto-generated discussion questions for MATH 621: Quantitative Finance and AI. Prices come live from Yahoo Finance; the yield curve comes from the U.S. Treasury.
 
-## Pages
+## One page, in sections
 
-- **Markets** (`/`): a written read of the session, three Huddle questions, U.S. and world indices, a sector board, rates/dollar/commodities, crypto, and the Treasury yield curve with the 2s10s spread.
-- **Portfolios** (`/portfolios`): a leaderboard against SPY, an upcoming earnings calendar, and for each portfolio a value chart vs. SPY plus a holdings table with weights, contribution, earnings dates, and links to each company's latest 10-K on SEC EDGAR.
-- **Closing Questions** (`/closing-questions`): end-of-class prompts written from that day's portfolio moves.
+- **The Session**: a written read of the day plus three Huddle questions.
+- **Macro Trends**: rates, the dollar, oil, copper, gold, VIX and bitcoin over 1 day, 1 week and 1 month; growth vs. value, small vs. large, cyclicals vs. defensives, breadth; 1-month sector rotation.
+- **Markets**: U.S. and world indices, the sector board, rates/dollar/commodities ETFs, crypto, and the Treasury yield curve.
+- **Micro Trends**: a macro-day vs. micro-day verdict, the week's leaders and laggards among our holdings, stocks near 52-week highs and lows, and unusual volume.
+- **Portfolios**: leaderboard vs. SPY, earnings calendar, and each portfolio's chart and holdings with links to 10-K filings.
+- **Closing Questions**: end-of-class prompts written from the day's moves.
+
+## Slideshow
+
+Click **Present** in the masthead (or open the site with `?slides=1` at the end of the address). Each section becomes a full-screen slide. Arrow keys or the on-screen arrows move between slides; Esc exits.
 
 Dotted underlined terms show a student-friendly definition on hover or tap.
 
