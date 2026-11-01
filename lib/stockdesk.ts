@@ -31,6 +31,18 @@ const p = (v?: number, d = 1) => (v == null || !isFinite(v) ? "n/a" : `${v > 0 ?
 const daysBetween = (a: string, b: string) => Math.round((+new Date(a + "T12:00:00Z") - +new Date(b + "T12:00:00Z")) / 864e5);
 const nice = (d: string) => new Date(d + "T12:00:00Z").toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" });
 
+// Keep only headlines that name the company or its ticker (Yahoo's search also returns loosely related stories)
+const STOP = new Set(["inc", "corp", "corporation", "co", "company", "the", "holdings", "group", "ltd", "plc", "global", "technologies", "international", "and"]);
+function relevant(items: Headline[], sym: string, name: string): Headline[] {
+  const words = name.replace(/[^A-Za-z0-9 ]/g, " ").split(/\s+/).filter((w) => w.length > 2 && !STOP.has(w.toLowerCase()));
+  const nameKeys = words.slice(0, 2).map((w) => w.toLowerCase());
+  const tick = sym.toLowerCase();
+  return items.filter((h) => {
+    const t = " " + h.title.toLowerCase().replace(/[^a-z0-9 ]/g, " ") + " ";
+    return t.includes(" " + tick + " ") || nameKeys.some((k) => t.includes(k));
+  });
+}
+
 export function buildDeskNotes(quotes: Record<string, Quote>, hist: Record<string, Bar[]>, news: Record<string, Headline[]>): Record<string, DeskNote> {
   const today = new Date().toISOString().slice(0, 10);
   const spy = quotes[BENCHMARK];
@@ -51,14 +63,16 @@ export function buildDeskNotes(quotes: Record<string, Quote>, hist: Record<strin
     // ── Why it moved ──
     const why: string[] = [];
     const gap = d - sd;
-    if (Math.abs(d) < 0.4) why.push(`Barely moved (${p(d, 2)}), roughly in line with ${sname} (${p(sd, 2)}).`);
+    if (Math.abs(d) < 0.4) why.push(Math.abs(gap) < 0.75
+      ? `Barely moved (${p(d, 2)}), roughly in line with ${sname} (${p(sd, 2)}).`
+      : `Barely moved (${p(d, 2)}) while ${sname} moved ${p(sd, 2)}, so it ${gap > 0 ? "held up better than" : "lagged"} its sector.`);
     else if (Math.abs(gap) < 1 && Math.sign(d) === Math.sign(sd)) why.push(`${d > 0 ? "Rose" : "Fell"} ${p(d, 2)} alongside ${sname} (${p(sd, 2)}), so this looks like a sector-wide move rather than company news.`);
     else why.push(`${d > 0 ? "Rose" : "Fell"} ${p(d, 2)} while ${sname} moved ${p(sd, 2)}. A ${Math.abs(gap).toFixed(1)}-point gap like that usually points to company-specific news.`);
     const volX = q.volume && q.avgVolume ? q.volume / q.avgVolume : undefined;
     if (volX && volX >= 1.5) why.push(`Volume ran ${volX.toFixed(1)}× its normal pace, a sign big investors were acting on news.`);
     if (q.earnings) {
       const dd = daysBetween(q.earnings, today);
-      if (dd >= 0 && dd <= 10) why.push(`Earnings are due ${dd === 0 ? "today" : `${nice(q.earnings)} (in ${dd} days)`}, which often makes traders position early.`);
+      if (dd >= 0 && dd <= 10) why.push(`Earnings are due ${dd === 0 ? "today" : dd === 1 ? `tomorrow, ${nice(q.earnings)}` : `${nice(q.earnings)} (in ${dd} days)`}, which often makes traders position early.`);
       else if (dd < 0 && dd >= -5) why.push(`It reported earnings on ${nice(q.earnings)}, the most likely driver of recent moves.`);
     }
 
@@ -90,7 +104,7 @@ export function buildDeskNotes(quotes: Record<string, Quote>, hist: Record<strin
     out[s] = {
       s, name: q.name, price: q.price, dayPct: d, w1, m1, owners: owners[s],
       sector: { etf, name: sname, dayPct: sq?.changePct },
-      why, lean, leanWhy, signals, earnings: q.earnings, headlines: (news[s] ?? []).slice(0, 3),
+      why, lean, leanWhy, signals, earnings: q.earnings, headlines: relevant(news[s] ?? [], s, q.name).slice(0, 3),
     };
   }
   return out;

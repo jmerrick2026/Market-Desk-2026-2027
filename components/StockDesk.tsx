@@ -56,6 +56,7 @@ export default function StockDesk({ notes }: { notes: Record<string, DeskNote> }
         <section className="sd-sec">
           <h3>Why it moved</h3>
           {n.why.map((w, i) => <p key={i}>{w}</p>)}
+          {n.headlines.length === 0 && <p className="sd-none">No company-specific headlines in the latest coverage.</p>}
           {n.headlines.length > 0 && (
             <ul className="sd-news">
               {n.headlines.map((h) => (

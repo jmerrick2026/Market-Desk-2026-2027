@@ -195,7 +195,7 @@ export function closeOnOrBefore(bars: Bar[], date: string): number | undefined {
 export type Headline = { title: string; publisher: string; link: string; date?: string };
 const cachedNews = unstable_cache(
   async (symbol: string): Promise<Headline[]> => {
-    const res: any = await (yf as any).search(symbol, { newsCount: 4, quotesCount: 0 }, { validateResult: false });
+    const res: any = await (yf as any).search(symbol, { newsCount: 8, quotesCount: 0 }, { validateResult: false });
     const items: Headline[] = (res?.news ?? []).map((n: any) => ({
       title: n.title, publisher: n.publisher, link: n.link,
       date: n.providerPublishTime ? new Date(n.providerPublishTime).toISOString().slice(0, 10) : undefined,
@@ -203,7 +203,7 @@ const cachedNews = unstable_cache(
     if (!items.length) throw new Error("no news"); // don't cache empty results
     return items;
   },
-  ["yahoo-news-v1"],
+  ["yahoo-news-v2"],
   { revalidate: 1800 }
 );
 export async function getNews(symbol: string): Promise<Headline[]> {
