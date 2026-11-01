@@ -14,6 +14,7 @@ import { LeadArt, MarketWeather, SectionArt, PhotoBand } from "../components/art
 import { PHOTOS } from "../lib/photos";
 import { GIVING } from "../lib/giving";
 import { VIDEOS, toEmbed } from "../lib/videos";
+import { videoOfTheDay } from "../lib/autovideo";
 import { buildAskJack } from "../lib/askjack";
 import { closing, curveStats, huddle, macroMicroQuestion, macroRead, microRead, setup, upcomingEarnings } from "../lib/prompts";
 
@@ -119,6 +120,21 @@ export default async function FrontPage() {
     : spxPct < 0 ? { a: W, b: verb(W, "Slips", "Slip") }
     : spxPct >= 1 ? { a: W, b: verb(W, "Rallies", "Rally") }
     : { a: W, b: verb(W, "Leads", "Lead") };
+  // ── Daily media: video and cover photo follow today's story ──
+  const oilPct = q["CL=F"]?.changePct ?? 0, tnxChg = (q["^TNX"]?.price ?? 0) - (q["^TNX"]?.prevClose ?? q["^TNX"]?.price ?? 0);
+  const kw = [
+    ...(best ? best.n.split(" ") : []), ...(worst ? worst.n.split(" ") : []),
+    ...[byDay[0], byDay[byDay.length - 1]].filter(Boolean).flatMap((x) => [x!.symbol, x!.name.split(" ")[0]]),
+    ...(Math.abs(oilPct) >= 2 ? ["oil", "crude", "energy"] : []),
+    ...((econ.fedIn ?? 99) <= 7 || Math.abs(tnxChg) >= 0.08 ? ["fed", "rates", "yields", "powell", "inflation"] : []),
+    ...(spxPct <= -1 ? ["selloff", "sell-off", "drop", "plunge", "tumble"] : spxPct >= 1 ? ["rally", "surge", "record"] : []),
+  ];
+  const auto = await videoOfTheDay(kw);
+  const vids = auto ? [auto, ...VIDEOS] : VIDEOS;
+  const coverPhoto = Math.abs(oilPct) >= 2.5 ? { ...PHOTOS.oil, pos: "center 60%" }
+    : (econ.fedIn ?? 99) <= 3 || Math.abs(tnxChg) >= 0.1 ? { ...PHOTOS.fed, pos: "center 40%" }
+    : Math.abs(spxPct) >= 1 ? { ...PHOTOS.floor, pos: "center 45%" }
+    : { ...PHOTOS.nyse, pos: "center 30%" };
   const asOf = mt ? new Date(mt).toLocaleDateString("en-CA", { timeZone: "America/New_York" }) : etDate;
   const askTopics = buildAskJack({ q, curve, results, trends, micro, risk, econ, sectors, quant });
   const session = mt ? new Date(mt).toLocaleDateString("en-US", { timeZone: "America/New_York", weekday: "long", month: "short", day: "numeric" }) : "latest";
@@ -129,7 +145,7 @@ export default async function FrontPage() {
       <main className="wrap">
         {/* ── Cover ── */}
         <section data-sec="A" className="cover" aria-label="Today's cover story">
-          <PhotoBand src={PHOTOS.nyse.src} credit={PHOTOS.nyse.credit} creditUrl={PHOTOS.nyse.page} height={300} pos="center 30%">
+          <PhotoBand src={coverPhoto.src} credit={coverPhoto.credit} creditUrl={coverPhoto.page} height={300} pos={coverPhoto.pos}>
             <p className="cover-kicker">{session !== "latest" ? session : "Today"} · The Market in One Line</p>
             <h2 className="cover-hl"><span>{cover.a}</span> <span className="red">{cover.b}</span></h2>
             <p className="cover-deck">{s.headline}</p>
@@ -161,8 +177,8 @@ export default async function FrontPage() {
             </nav>
           </article>
           <aside className="huddle">
-            {VIDEOS[0] && (() => {
-              const v = VIDEOS[0]; const e = toEmbed(v.url);
+            {vids[0] && (() => {
+              const v = vids[0]; const e = toEmbed(v.url);
               return (
                 <figure className="rail-video">
                   <p className="kicker">Video of the Day</p>
@@ -171,7 +187,7 @@ export default async function FrontPage() {
                       : e?.kind === "file" ? <video src={e.src} controls preload="metadata" />
                       : <a href={v.url} target="_blank" rel="noreferrer">Open video</a>}
                   </div>
-                  <figcaption><b>{v.title}</b>{v.note && <span> · {v.note}</span>}<a href="#watch">More in Watch, G2 ›</a></figcaption>
+                  <figcaption><b>{v.title}</b>{v.note && <span>{v.note}</span>}{"why" in v && <em className="rv-why">{(v as { why: string }).why}</em>}<a href="#watch">More in Watch, G2 ›</a></figcaption>
                 </figure>
               );
             })()}
@@ -720,9 +736,9 @@ export default async function FrontPage() {
         {/* ── Video ── */}
         <section data-sec="G" id="watch" data-slide>
           <Banner art="film" page="G2" title="Watch" sub="Videos picked for this week's lessons." />
-          {VIDEOS.length ? (
+          {vids.length ? (
             <div className="videos">
-              {VIDEOS.map((v) => {
+              {vids.map((v) => {
                 const e = toEmbed(v.url);
                 return (
                   <figure key={v.url} className="video">
