@@ -190,3 +190,26 @@ export function closeOnOrBefore(bars: Bar[], date: string): number | undefined {
   for (const b of bars) if (b.date <= date) v = b.close; else break;
   return v ?? bars[0]?.close;
 }
+
+// ── Headlines for a ticker (Yahoo Finance search), cached 30 minutes ──
+export type Headline = { title: string; publisher: string; link: string; date?: string };
+const cachedNews = unstable_cache(
+  async (symbol: string): Promise<Headline[]> => {
+    const res: any = await (yf as any).search(symbol, { newsCount: 4, quotesCount: 0 }, { validateResult: false });
+    const items: Headline[] = (res?.news ?? []).map((n: any) => ({
+      title: n.title, publisher: n.publisher, link: n.link,
+      date: n.providerPublishTime ? new Date(n.providerPublishTime).toISOString().slice(0, 10) : undefined,
+    })).filter((n: Headline) => n.title && n.link);
+    if (!items.length) throw new Error("no news"); // don't cache empty results
+    return items;
+  },
+  ["yahoo-news-v1"],
+  { revalidate: 1800 }
+);
+export async function getNews(symbol: string): Promise<Headline[]> {
+  if (DEMO) return [
+    { title: `${symbol} shares in focus as investors weigh guidance`, publisher: "Sample Wire", link: "https://finance.yahoo.com/quote/" + symbol, date: new Date().toISOString().slice(0, 10) },
+    { title: `Analysts revisit ${symbol} price targets`, publisher: "Sample Daily", link: "https://finance.yahoo.com/quote/" + symbol },
+  ];
+  try { return await cachedNews(symbol); } catch { return []; }
+}

@@ -6,6 +6,7 @@ import { makeCrossword, Entry } from "../lib/crossword";
 import Crossword from "../components/Crossword";
 import UpOrDown from "../components/UpOrDown";
 import AskJack from "../components/AskJack";
+import StockDesk from "../components/StockDesk";
 import { LeadArt, MarketWeather, SectionArt } from "../components/art";
 import { VIDEOS, toEmbed } from "../lib/videos";
 import { buildAskJack } from "../lib/askjack";
@@ -55,7 +56,7 @@ function Banner({ title, sub, art, page }: { title: string; sub: string; art?: s
 }
 
 export default async function FrontPage() {
-  const { quotes: q, curve, results, trends, micro, risk, econ, spxBars } = await loadAll();
+  const { quotes: q, curve, results, trends, micro, risk, econ, spxBars, desk } = await loadAll();
   const s = setup(q, curve);
   const prompts = huddle(q, curve);
   const cs = curveStats(curve);
@@ -380,15 +381,15 @@ export default async function FrontPage() {
           <div className="three">
             <div>
               <h3 className="sub">Near a <Term t="52-week high" /></h3>
-              {micro.nearHigh.length ? <ul className="plain">{micro.nearHigh.map((r) => <li key={r.s}><b>{r.s}</b> {r.name !== r.s && <span className="muted">{r.name}</span>}<span className="num">{r.offHigh!.toFixed(1)}% from high</span></li>)}</ul> : <p className="muted">None of our holdings is within 3% of its 52-week high.</p>}
+              {micro.nearHigh.length ? <ul className="plain">{micro.nearHigh.map((r) => <li key={r.s}><button className="tick" data-stock={r.s}>{r.s}</button> {r.name !== r.s && <span className="muted">{r.name}</span>}<span className="num">{r.offHigh!.toFixed(1)}% from high</span></li>)}</ul> : <p className="muted">None of our holdings is within 3% of its 52-week high.</p>}
             </div>
             <div>
               <h3 className="sub">Near a 52-week low</h3>
-              {micro.nearLow.length ? <ul className="plain">{micro.nearLow.map((r) => <li key={r.s}><b>{r.s}</b> {r.name !== r.s && <span className="muted">{r.name}</span>}<span className="num">+{r.offLow!.toFixed(1)}% above low</span></li>)}</ul> : <p className="muted">None of our holdings is within 8% of its 52-week low.</p>}
+              {micro.nearLow.length ? <ul className="plain">{micro.nearLow.map((r) => <li key={r.s}><button className="tick" data-stock={r.s}>{r.s}</button> {r.name !== r.s && <span className="muted">{r.name}</span>}<span className="num">+{r.offLow!.toFixed(1)}% above low</span></li>)}</ul> : <p className="muted">None of our holdings is within 8% of its 52-week low.</p>}
             </div>
             <div>
               <h3 className="sub"><Term t="unusual volume">Unusual volume</Term></h3>
-              {micro.volume.length ? <ul className="plain">{micro.volume.map((r) => <li key={r.s}><b>{r.s}</b> {r.name !== r.s && <span className="muted">{r.name}</span>}<span className="num">{r.volX!.toFixed(1)}× normal</span></li>)}</ul> : <p className="muted">No holding traded at 1.5× its usual volume.</p>}
+              {micro.volume.length ? <ul className="plain">{micro.volume.map((r) => <li key={r.s}><button className="tick" data-stock={r.s}>{r.s}</button> {r.name !== r.s && <span className="muted">{r.name}</span>}<span className="num">{r.volX!.toFixed(1)}× normal</span></li>)}</ul> : <p className="muted">No holding traded at 1.5× its usual volume.</p>}
             </div>
           </div>
           <p className="muted small">Stocks pressing new highs show momentum; stocks near lows may be broken stories or bargains. Heavy volume means big investors are acting on news.</p>
@@ -396,7 +397,7 @@ export default async function FrontPage() {
 
         {/* ── Portfolios ── */}
         <section id="portfolios" data-slide>
-          <Banner art="briefcase" page="C1" title="Portfolios" sub={`Three model portfolios measured against the S&P 500 (${BENCHMARK}), share-weighted and including cash.`} />
+          <Banner art="briefcase" page="C1" title="Portfolios" sub={`Three model portfolios measured against the S&P 500 (${BENCHMARK}), share-weighted and including cash. Click any ticker for its desk note.`} />
           <div className="grid2 tight">
             <div>
               <h2>Leaderboard</h2>
@@ -542,7 +543,7 @@ export default async function FrontPage() {
                 <tbody>
                   {r.positions.map((h) => (
                     <tr key={h.symbol}>
-                      <td><b>{h.symbol}</b> {h.name !== h.symbol && <span className="muted">{h.name}</span>}</td>
+                      <td><button className="tick" data-stock={h.symbol}>{h.symbol}</button> {h.name !== h.symbol && <span className="muted">{h.name}</span>}</td>
                       <td className="r num">{fmt(h.shares, h.estimatedShares ? 2 : 0)}{h.estimatedShares && <sup title="Estimated: equal dollars at inception">*</sup>}</td>
                       <td className="r num">{fmt(h.price)}</td>
                       <td className="r num">{usd(h.value)}</td>
@@ -580,7 +581,7 @@ export default async function FrontPage() {
                     const nearHi = !!(qq?.high52 && qq.price >= qq.high52 * 0.97);
                     return (
                       <div className={`agate-row ${nearHi ? "hi" : ""}`} key={p.symbol}>
-                        <span className="sym">{p.symbol}{nearHi ? " ▲" : ""}</span>
+                        <span className="sym"><button className="tick sm" data-stock={p.symbol}>{p.symbol}</button>{nearHi ? " ▲" : ""}</span>
                         <span>{fmt(p.price)}</span>
                         <span className={(chgAmt ?? 0) >= 0 ? "up" : "down"}>{chgAmt != null ? `${chgAmt >= 0 ? "+" : ""}${chgAmt.toFixed(2)}` : "n/a"}</span>
                         <span className={p.dayPct >= 0 ? "up" : "down"}>{p.dayPct >= 0 ? "+" : ""}{p.dayPct.toFixed(1)}</span>
@@ -618,7 +619,7 @@ export default async function FrontPage() {
                   const A = ({ x }: { x: { label: string; url: string } }) => <a href={x.url} target="_blank" rel="noreferrer">{x.label}</a>;
                   return (
                     <tr key={c.s}>
-                      <td><a href={l.quote} target="_blank" rel="noreferrer"><b>{c.s}</b></a> {c.name !== c.s && <span className="muted">{c.name}</span>}</td>
+                      <td><button className="tick" data-stock={c.s}>{c.s}</button> {c.name !== c.s && <span className="muted">{c.name}</span>}</td>
                       <td className="owners-cell">{c.owners.join(" · ")}</td>
                       <td className="c"><A x={l.annual} /></td>
                       <td className="c"><A x={l.quarterly} /></td>
@@ -688,6 +689,7 @@ export default async function FrontPage() {
       </main>
       <Footer />
       <AskJack topics={askTopics} asOf={asOf} />
+      <StockDesk notes={desk} />
     </div>
   );
 }
@@ -700,7 +702,7 @@ function MoverTable({ rows }: { rows: { s: string; name: string; d1: number; w1?
       <tbody>
         {rows.map((r) => (
           <tr key={r.s}>
-            <td><b>{r.s}</b> {r.name !== r.s && <span className="muted">{r.name}</span>}</td>
+            <td><button className="tick" data-stock={r.s}>{r.s}</button> {r.name !== r.s && <span className="muted">{r.name}</span>}</td>
             <td className="r num"><Chg v={r.d1} /></td>
             <td className="r num"><Chg v={r.w1} /></td>
           </tr>

@@ -1,5 +1,6 @@
 import { BENCHMARK, PORTFOLIOS, Portfolio } from "./portfolios";
-import { Bar, Quote, closeOnOrBefore, getCurve, getHistories, getQuotes } from "./data";
+import { Bar, Quote, closeOnOrBefore, getCurve, getHistories, getQuotes, getNews } from "./data";
+import { buildDeskNotes } from "./stockdesk";
 import { getEconCalendar } from "./econ";
 import { computeRisk } from "./risk";
 
@@ -205,7 +206,12 @@ export async function loadAll() {
   const quoteSyms = [...new Set([...marketSyms, ...holdings, BENCHMARK, ...TREND_SYMBOLS])];
   const histSyms = [...new Set([...holdings, BENCHMARK, "^GSPC", ...TREND_SYMBOLS])];
   const from = [...PORTFOLIOS.map((p) => p.startDate), daysAgo(190)].sort()[0]; // ~6 months for risk stats
-  const [quotes, hist, curve, econ] = await Promise.all([getQuotes(quoteSyms), getHistories(histSyms, from), getCurve(), getEconCalendar()]);
+  const uniqHold = [...new Set(holdings)];
+  const [quotes, hist, curve, econ, newsList] = await Promise.all([
+    getQuotes(quoteSyms), getHistories(histSyms, from), getCurve(), getEconCalendar(),
+    Promise.all(uniqHold.map((s) => getNews(s))),
+  ]);
+  const news = Object.fromEntries(uniqHold.map((s, i) => [s, newsList[i]]));
   const results = computePortfolios(quotes, hist);
   return {
     quotes, curve, econ, results,
@@ -213,5 +219,6 @@ export async function loadAll() {
     risk: computeRisk(results, hist, BENCHMARK, quotes["^IRX"]?.price ?? 4),
     trends: computeTrends(quotes, hist),
     micro: computeMicro(quotes, hist),
+    desk: buildDeskNotes(quotes, hist, news),
   };
 }

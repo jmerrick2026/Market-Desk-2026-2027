@@ -186,7 +186,7 @@ export function HoldingsMap({ items, width = 360, height = 300 }: {
         const strong = Math.abs(c.dayPct) > 1.4;
         const big = c.w > 46 && c.h > 30;
         return (
-          <g key={c.symbol}>
+          <g key={c.symbol} data-stock={c.symbol} style={{ cursor: "pointer" }}>
             <rect x={c.x + 0.75} y={c.y + 0.75} width={Math.max(0, c.w - 1.5)} height={Math.max(0, c.h - 1.5)} fill={shade(c.dayPct)} stroke="#161412" strokeWidth="0.75" />
             {c.w > 26 && c.h > 16 && (
               <text x={c.x + c.w / 2} y={c.y + c.h / 2 + (big ? -2 : 4)} textAnchor="middle" className={`tm-sym ${strong ? "light" : ""}`} style={{ fontSize: Math.min(15, Math.max(9, Math.sqrt(c.w * c.h) / 4.2)) }}>{c.symbol}</text>
