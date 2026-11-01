@@ -8,7 +8,8 @@ import UpOrDown from "../components/UpOrDown";
 import AskJack from "../components/AskJack";
 import StockDesk from "../components/StockDesk";
 import Simulator from "../components/Simulator";
-import { LeadArt, MarketWeather, SectionArt } from "../components/art";
+import { LeadArt, MarketWeather, SectionArt, PhotoBand } from "../components/art";
+import { PHOTOS } from "../lib/photos";
 import { VIDEOS, toEmbed } from "../lib/videos";
 import { buildAskJack } from "../lib/askjack";
 import { closing, curveStats, huddle, macroMicroQuestion, macroRead, microRead, setup, upcomingEarnings } from "../lib/prompts";
@@ -104,6 +105,17 @@ export default async function FrontPage() {
   const shuffled = [...allPos].sort((a, b) => ((h ^ a.symbol.charCodeAt(0) * 2654435761) % 997) - ((h ^ b.symbol.charCodeAt(0) * 2654435761) % 997) || a.symbol.localeCompare(b.symbol));
   const uodItems = shuffled.slice(0, 6).map((p) => ({ s: p.symbol, name: p.name, pct: p.dayPct, owner: p.owner }));
   const mt = q[BENCHMARK]?.marketTime;
+  // Poster headline: two or three punchy words, one in red
+  const spxPct = q["^GSPC"]?.changePct ?? 0;
+  const best = sectors[0], worst = sectors[sectors.length - 1];
+  const shortName = (n: string) => n.replace("Technology", "Tech").replace("Consumer Discretionary", "Retail").replace("Consumer Staples", "Staples").replace("Communication", "Media").replace("Real Estate", "Property").replace("Health Care", "Health");
+  const plural = (w: string) => /(Utilities|Financials|Industrials|Materials|Staples)$/.test(w);
+  const verb = (w: string, one: string, many: string) => (plural(w) ? many : one);
+  const W = spxPct < 0 ? (worst ? shortName(worst.n) : "Stocks") : (best ? shortName(best.n) : "Stocks");
+  const cover = spxPct <= -1 ? { a: W, b: verb(W, "Tumbles", "Tumble") }
+    : spxPct < 0 ? { a: W, b: verb(W, "Slips", "Slip") }
+    : spxPct >= 1 ? { a: W, b: verb(W, "Rallies", "Rally") }
+    : { a: W, b: verb(W, "Leads", "Lead") };
   const asOf = mt ? new Date(mt).toLocaleDateString("en-CA", { timeZone: "America/New_York" }) : etDate;
   const askTopics = buildAskJack({ q, curve, results, trends, micro, risk, econ, sectors });
   const session = mt ? new Date(mt).toLocaleDateString("en-US", { timeZone: "America/New_York", weekday: "long", month: "short", day: "numeric" }) : "latest";
@@ -112,6 +124,21 @@ export default async function FrontPage() {
     <div className="sheet">
       <Header />
       <main className="wrap">
+        {/* ── Cover ── */}
+        <section className="cover" aria-label="Today's cover story">
+          <PhotoBand src={PHOTOS.nyse.src} credit={PHOTOS.nyse.credit} creditUrl={PHOTOS.nyse.page} height={470} pos="center 30%">
+            <p className="cover-kicker">{session !== "latest" ? session : "Today"} · The Market in One Line</p>
+            <h2 className="cover-hl"><span>{cover.a}</span> <span className="red">{cover.b}</span></h2>
+            <p className="cover-deck">{s.headline}</p>
+            <div className="cover-stats">
+              <span>S&amp;P 500 <b className={spxPct >= 0 ? "up" : "down"}>{spxPct >= 0 ? "+" : ""}{spxPct.toFixed(2)}%</b></span>
+              <span>Nasdaq 100 <b className={(q["^NDX"]?.changePct ?? 0) >= 0 ? "up" : "down"}>{(q["^NDX"]?.changePct ?? 0) >= 0 ? "+" : ""}{(q["^NDX"]?.changePct ?? 0).toFixed(2)}%</b></span>
+              <span>10-yr <b>{cs?.y10 != null ? `${cs.y10.toFixed(2)}%` : "n/a"}</b></span>
+              <span>VIX <b>{fmt(q["^VIX"]?.price, 1)}</b></span>
+            </div>
+          </PhotoBand>
+        </section>
+
         {/* ── 15-minute recap ── */}
         <section id="recap" className="recap" data-slide data-brief>
           <div className="recap-head">
@@ -183,6 +210,7 @@ export default async function FrontPage() {
 
         {/* ── Macro trends ── */}
         <section id="macro" data-slide data-brief>
+          <PhotoBand src={PHOTOS.oil.src} credit={PHOTOS.oil.credit} creditUrl={PHOTOS.oil.page} caption="Oil, rates, and the dollar move every stock at once." height={200} pos="center 60%" />
           <Banner art="globe" page="A2" title="Macro Trends" sub="The big forces that move every stock at once: rates, currencies, commodities, and fear." />
           <div className="macro-grid">
             <div className="cols-narrow">{macroLines.map((l, i) => <p key={i}>{l}</p>)}</div>
@@ -239,6 +267,7 @@ export default async function FrontPage() {
 
         {/* ── Economic calendar ── */}
         <section id="week" data-slide>
+          <PhotoBand src={PHOTOS.fed.src} credit={PHOTOS.fed.credit} creditUrl={PHOTOS.fed.page} caption="The Federal Reserve's Eccles Building, Washington." height={200} pos="center 40%" />
           <Banner art="columns" page="A3" title="The Week Ahead" sub="Scheduled economic releases that can move the whole market. Times are Eastern." />
           <div className="week-grid">
             <div className="fedbox">
@@ -297,6 +326,7 @@ export default async function FrontPage() {
 
         {/* ── Markets ── */}
         <section id="markets" data-slide>
+          <PhotoBand src={PHOTOS.floor.src} credit={PHOTOS.floor.credit} creditUrl={PHOTOS.floor.page} caption="The trading floor of the New York Stock Exchange." height={200} pos="center 45%" />
           <Banner art="candles" page="B1" title="Markets" sub="Where the major indices closed, at home and abroad." />
           <div className="grid2">
             <section className="card">

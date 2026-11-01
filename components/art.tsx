@@ -156,3 +156,21 @@ export function SectionArt({ kind }: { kind: string }) {
     </svg>
   );
 }
+
+/** Glossy duotone photo band (CSS background, so a failed image falls back to a gradient, never a broken icon). */
+export function PhotoBand({ src, credit, creditUrl, caption, height = 240, pos = "center", children }: {
+  src: string; credit: string; creditUrl: string; caption?: string; height?: number; pos?: string; children?: React.ReactNode;
+}) {
+  return (
+    <figure className="photo-band" style={{ height }}>
+      <div className="pb-img" style={{ backgroundImage: `url("${src}")`, backgroundPosition: pos }} />
+      <div className="pb-tint" />
+      <div className="pb-gloss" />
+      {children && <div className="pb-content">{children}</div>}
+      <figcaption>
+        {caption && <span>{caption}</span>}
+        <a href={creditUrl} target="_blank" rel="noreferrer">Photo: {credit}</a>
+      </figcaption>
+    </figure>
+  );
+}
