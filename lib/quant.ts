@@ -35,7 +35,7 @@ export type QuantPortfolio = {
   // Show the math
   meanD: number; sdD: number; volA: number; retA: number; cov: number; varM: number; beta: number; corr: number; rf: number; sharpe: number;
   // Regression
-  alphaD: number; alphaA: number; r2: number; points: [number, number][];
+  alphaD: number; alphaA: number; jensen: number; capm: number; r2: number; points: [number, number][];
   // VaR
   varHist: number; varParam: number; cvar: number; varHistPct: number; varParamPct: number; worstDay: number;
   // Monte Carlo
@@ -99,7 +99,7 @@ export function computeQuant(results: PortfolioResult[], hist: Record<string, Ba
     return {
       id: res.p.id, name: res.p.name, value: total,
       meanD, sdD, volA, retA, cov, varM, beta, corr, rf, sharpe,
-      alphaD, alphaA: alphaD * TD, r2: corr * corr,
+      alphaD, alphaA: alphaD * TD, capm: rf + beta * (spy.retA - rf), jensen: retA - (rf + beta * (spy.retA - rf)), r2: corr * corr,
       points: m.map((x, i) => [+(x * 100).toFixed(3), +(rp[i] * 100).toFixed(3)] as [number, number]),
       varHist: varHistPct * total, varParam: varParamPct * total, cvar: -mean(tail) * total, varHistPct, varParamPct, worstDay: Math.min(...rp),
       mc: {

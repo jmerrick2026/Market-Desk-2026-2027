@@ -27,7 +27,7 @@ function Picker({ q }: { q: Quant }) {
 
 /* ───────── Show the Math ───────── */
 function MathCards({ p, q }: { p: QuantPortfolio; q: Quant }) {
-  const [tab, setTab] = useState<"beta" | "vol" | "sharpe" | "corr">("beta");
+  const [tab, setTab] = useState<"beta" | "alpha" | "vol" | "sharpe" | "corr">("beta");
   const n = q.days;
   const body = {
     beta: {
@@ -38,6 +38,15 @@ function MathCards({ p, q }: { p: QuantPortfolio; q: Quant }) {
         <>{(p.cov * 1e4).toFixed(3)} ÷ {(p.varM * 1e4).toFixed(3)} = <b className="ql-ans">{p.beta.toFixed(2)}</b></>,
       ],
       read: `When the S&P 500 moves 1%, this portfolio has tended to move about ${p.beta.toFixed(2)}%. ${p.beta > 1.1 ? "That is an aggressive book." : p.beta < 0.9 ? "That is a defensive book." : "That is close to the market itself."}`,
+    },
+    alpha: {
+      name: "Alpha (α)", f: <>α = R<sub>p</sub> − [R<sub>f</sub> + β × (R<sub>m</sub> − R<sub>f</sub>)]</>,
+      steps: [
+        <>Our annualized return R<sub>p</sub>: <b>{pct(p.retA, 1)}</b>. The S&amp;P 500’s R<sub>m</sub>: <b>{pct(q.spy.retA, 1)}</b>. T-bills R<sub>f</sub>: <b>{q.rfPct.toFixed(2)}%</b></>,
+        <>What our beta “earned” (CAPM): {q.rfPct.toFixed(2)}% + {p.beta.toFixed(2)} × ({pct(q.spy.retA, 1)} − {q.rfPct.toFixed(2)}%) = <b>{pct(p.capm, 1)}</b></>,
+        <>{pct(p.retA, 1)} − {pct(p.capm, 1)} = <b className="ql-ans">{sgn(p.jensen, 1)}</b> a year</>,
+      ],
+      read: `Alpha is the return left over after paying for the market risk we took. ${p.jensen >= 0 ? `Positive: our picks added about ${pct(p.jensen, 1)} a year beyond what beta alone explains.` : `Negative: we earned about ${pct(-p.jensen, 1)} a year less than our beta predicted.`} Six months is a short sample, so treat it as a clue, not proof of skill.`,
     },
     vol: {
       name: "Volatility (σ)", f: <>σ<sub>annual</sub> = σ<sub>daily</sub> × √252</>,
@@ -71,8 +80,8 @@ function MathCards({ p, q }: { p: QuantPortfolio; q: Quant }) {
     <div className="ql-panel">
       <p className="ql-kick">Show the Math</p>
       <div className="ql-tabs">
-        {(["beta", "vol", "sharpe", "corr"] as const).map((t) => (
-          <button key={t} className={tab === t ? "on" : ""} onClick={() => setTab(t)}>{{ beta: "Beta", vol: "Volatility", sharpe: "Sharpe", corr: "Correlation" }[t]}</button>
+        {(["beta", "alpha", "vol", "sharpe", "corr"] as const).map((t) => (
+          <button key={t} className={tab === t ? "on" : ""} onClick={() => setTab(t)}>{{ beta: "Beta", alpha: "Alpha", vol: "Volatility", sharpe: "Sharpe", corr: "Correlation" }[t]}</button>
         ))}
       </div>
       <h4>{body.name}</h4>
@@ -108,10 +117,10 @@ function Scatter({ p }: { p: QuantPortfolio }) {
       </svg>
       <div className="ql-stats">
         <span>Slope β <b>{p.beta.toFixed(2)}</b></span>
-        <span>Alpha <b className={p.alphaA >= 0 ? "up" : "down"}>{sgn(p.alphaA, 1)}/yr</b></span>
+        <span>Alpha <b className={p.jensen >= 0 ? "up" : "down"}>{sgn(p.jensen, 1)}/yr</b></span>
         <span>R² <b>{p.r2.toFixed(2)}</b></span>
       </div>
-      <p className="ql-read">Red line: best fit. Dashed line: a portfolio that simply copies the market. Green dots are days we beat the S&amp;P 500, gray dots days we trailed it. Alpha is the intercept, the return left over after the market’s share is removed.</p>
+      <p className="ql-read">Red line: best fit. Dashed line: a portfolio that simply copies the market. Green dots are days we beat the S&amp;P 500, gray dots days we trailed it. Alpha is the return left over after the market’s share (and the T-bill rate) is removed; see the Alpha card for the math.</p>
     </div>
   );
 }

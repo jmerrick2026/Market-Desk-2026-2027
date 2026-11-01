@@ -514,6 +514,7 @@ export default async function FrontPage() {
                   <th className="r"><Term t="volatility">Volatility</Term></th>
                   <th className="r"><Term t="beta">Beta</Term></th>
                   <th className="r"><Term t="max drawdown">Max drawdown</Term></th>
+                  <th className="r"><Term t="alpha">Alpha</Term></th>
                   <th className="r"><Term t="Sharpe ratio">Sharpe</Term></th>
                   <th className="r"><Term t="correlation">Avg. correlation</Term></th>
                 </tr>
@@ -526,6 +527,7 @@ export default async function FrontPage() {
                     <td className="r num">{p.stats.vol?.toFixed(1)}%</td>
                     <td className="r num">{p.stats.beta?.toFixed(2)}</td>
                     <td className="r num down">{p.stats.maxDD?.toFixed(1)}%</td>
+                    <td className="r num">{(() => { const a = quant?.portfolios.find((x) => x.id === p.id)?.jensen; return a == null ? "n/a" : <Chg v={a * 100} digits={1} />; })()}</td>
                     <td className="r num">{p.stats.sharpe?.toFixed(2)}</td>
                     <td className="r num">{p.stats.avgCorr?.toFixed(2)}</td>
                   </tr>
@@ -536,6 +538,7 @@ export default async function FrontPage() {
                   <td className="r num">{risk.bench.vol?.toFixed(1)}%</td>
                   <td className="r num">1.00</td>
                   <td className="r num">{risk.bench.maxDD?.toFixed(1)}%</td>
+                  <td className="r num">0.0%</td>
                   <td className="r num">{risk.bench.sharpe?.toFixed(2)}</td>
                   <td></td>
                 </tr>
