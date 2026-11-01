@@ -53,9 +53,9 @@ export function LeadArt({ bars, title }: { bars: Bar[]; title: string }) {
           </g>
         ))}
         <line x1={P.l} x2={W - P.r} y1={H - P.b} y2={H - P.b} stroke="#161412" strokeWidth="1.5" />
-        <circle cx={x(iHi)} cy={y(hi)} r="4.5" fill="#f6f1e7" stroke="#161412" strokeWidth="2" />
+        <circle cx={x(iHi)} cy={y(hi)} r="4.5" fill="#ffffff" stroke="#161412" strokeWidth="2" />
         <text x={x(iHi)} y={y(hi) - 10} textAnchor="middle" className="la-note">High {fmt(hi)}</text>
-        <circle cx={x(iLo)} cy={y(lo)} r="4.5" fill="#f6f1e7" stroke="#161412" strokeWidth="2" />
+        <circle cx={x(iLo)} cy={y(lo)} r="4.5" fill="#ffffff" stroke="#161412" strokeWidth="2" />
         <text x={x(iLo)} y={y(lo) + 20} textAnchor="middle" className="la-note">Low {fmt(lo)}</text>
         <circle cx={x(bars.length - 1)} cy={y(last.close)} r="6" fill="#161412" />
         <text x={x(bars.length - 1) + 10} y={y(last.close) + 5} className="la-last">{fmt(last.close)}</text>
@@ -107,7 +107,7 @@ function WeatherIcon({ kind }: { kind: string }) {
     </g>
   );
   const cloud = (dx: number, dy: number, s = 1) => (
-    <path transform={`translate(${dx} ${dy}) scale(${s})`} d="M10 40 C2 40 2 28 11 27 C11 17 25 13 30 21 C34 12 50 14 50 26 C59 26 60 40 50 40 Z" fill="#f6f1e7" stroke="#161412" strokeWidth="2.2" strokeLinejoin="round" />
+    <path transform={`translate(${dx} ${dy}) scale(${s})`} d="M10 40 C2 40 2 28 11 27 C11 17 25 13 30 21 C34 12 50 14 50 26 C59 26 60 40 50 40 Z" fill="#ffffff" stroke="#161412" strokeWidth="2.2" strokeLinejoin="round" />
   );
   return (
     <svg viewBox="0 0 70 64" className="wx-icon" aria-hidden="true">
@@ -140,7 +140,7 @@ export function SectionArt({ kind }: { kind: string }) {
     recap: (<g {...S}><circle cx="32" cy="34" r="20" /><path d="M32 20 V34 L42 40" /><path d="M26 10 H38 M32 10 V14" /><circle cx="32" cy="34" r="20" fill={H} opacity=".25" stroke="none" /></g>),
     globe: (<g {...S}><circle cx="32" cy="32" r="22" /><ellipse cx="32" cy="32" rx="9" ry="22" /><path d="M10 32 H54 M14 20 H50 M14 44 H50" /><path d="M32 10 V54" /><path d="M20 14 C26 22 26 42 20 50" fill={H} opacity=".35" stroke="none" /></g>),
     columns: (<g {...S}><path d="M8 22 L32 8 L56 22 Z" fill={H} /><path d="M10 22 H54 M10 26 H54" />{[16, 26, 38, 48].map((x) => <path key={x} d={`M${x} 26 V50 M${x - 3} 26 V50`} />)}<path d="M8 50 H56 M6 55 H58" /></g>),
-    candles: (<g {...S}>{[[12, 30, 44, 22, 38, 1], [24, 20, 40, 26, 34, 0], [36, 14, 34, 18, 28, 1], [48, 8, 28, 12, 22, 1]].map(([x, top, bot, b1, b2, up], i) => (<g key={i}><path d={`M${x} ${top} V${bot}`} /><rect x={x - 4} y={b1} width="8" height={b2 - b1} fill={up ? H : "#f6f1e7"} /></g>))}<path d="M6 56 H58" /></g>),
+    candles: (<g {...S}>{[[12, 30, 44, 22, 38, 1], [24, 20, 40, 26, 34, 0], [36, 14, 34, 18, 28, 1], [48, 8, 28, 12, 22, 1]].map(([x, top, bot, b1, b2, up], i) => (<g key={i}><path d={`M${x} ${top} V${bot}`} /><rect x={x - 4} y={b1} width="8" height={b2 - b1} fill={up ? H : "#ffffff"} /></g>))}<path d="M6 56 H58" /></g>),
     magnifier: (<g {...S}><circle cx="26" cy="26" r="16" /><circle cx="26" cy="26" r="16" fill={H} opacity=".3" stroke="none" /><path d="M38 38 L54 54" strokeWidth="5" /><path d="M18 30 L24 24 L28 28 L34 20" /></g>),
     briefcase: (<g {...S}><rect x="8" y="20" width="48" height="32" rx="3" /><path d="M24 20 V14 H40 V20" /><path d="M8 32 H56" /><rect x="28" y="29" width="8" height="7" fill={H} /><path d="M8 32 V52 H56 V32" fill={H} opacity=".25" stroke="none" /></g>),
     scale: (<g {...S}><path d="M32 10 V52 M20 54 H44" /><path d="M12 18 H52" /><path d="M12 18 L4 34 H20 Z" fill={H} /><path d="M52 18 L44 34 H60 Z" /><circle cx="32" cy="10" r="3" /></g>),
