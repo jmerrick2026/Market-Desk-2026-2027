@@ -725,7 +725,7 @@ export default async function FrontPage() {
         </section>
       </main>
       <Footer />
-      <AskJack topics={askTopics} asOf={asOf} />
+      <AskJack topics={askTopics} asOf={asOf} desk={desk} macro={trends.macro.map((m) => ({ s: m.s, n: m.n, kind: m.kind, level: m.level, d1: m.d1, w1: m.w1, m1: m.m1, why: m.why }))} ai={!!process.env.ANTHROPIC_API_KEY} />
       <StockDesk notes={desk} />
     </div>
   );

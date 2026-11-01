@@ -2,6 +2,9 @@
 
 import { useEffect, useId, useRef, useState } from "react";
 import type { Topic, QA } from "../lib/askjack";
+import type { DeskNote } from "../lib/stockdesk";
+
+type MacroRow = { s: string; n: string; kind: string; level?: number; d1?: number; w1?: number; m1?: number; why: string };
 
 // Which topic each page section belongs to
 const SECTION_TOPIC: Record<string, string> = {
@@ -13,7 +16,8 @@ const TINTS = ["lav", "pink", "lime"];
 
 type Msg = { role: "you" | "jack"; qa: QA };
 
-export default function AskJack({ topics, asOf }: { topics: Topic[]; asOf: string }) {
+export default function AskJack({ topics, asOf, desk, macro, ai }: { topics: Topic[]; asOf: string; desk: Record<string, DeskNote>; macro: MacroRow[]; ai: boolean }) {
+  const [draft, setDraft] = useState("");
   const [open, setOpen] = useState(false);
   const [topicId, setTopicId] = useState("front");
   const [msgs, setMsgs] = useState<Msg[]>([]);
@@ -57,6 +61,79 @@ export default function AskJack({ topics, asOf }: { topics: Topic[]; asOf: strin
     setTyping(true);
     setTimeout(() => { setTyping(false); setMsgs((m) => [...m, { role: "jack", qa }]); }, 650);
   };
+  const pct = (v?: number, d = 1) => (v == null || !isFinite(v) ? "n/a" : `${v > 0 ? "+" : ""}${v.toFixed(d)}%`);
+  const findQA = (frag: string) => topics.flatMap((t) => t.qs).find((x) => x.q.toLowerCase().includes(frag));
+
+  // Built-in answers for typed questions: tickers, company names, and common topics
+  const localAnswer = (raw: string): QA => {
+    const text = raw.toLowerCase();
+    const words = new Set(text.replace(/[^a-z0-9 ]/g, " ").split(/\s+/));
+    const hit = Object.values(desk).find((n) => words.has(n.s.toLowerCase()) && (n.s.length > 1 || /\bp\b/.test(raw)))
+      ?? Object.values(desk).find((n) => { const w = n.name.toLowerCase().replace(/[^a-z0-9 ]/g, " ").split(/\s+/).find((x) => x.length > 3 && !["corp", "corporation", "holdings", "group", "company", "international", "technologies", "inc"].includes(x)); return !!w && text.includes(w); });
+    if (hit) {
+      return {
+        q: raw,
+        a: [`${hit.s} (${hit.name}, held in ${hit.owners.join(" and ")}): ${pct(hit.dayPct, 2)} today, ${pct(hit.w1)} this week, ${pct(hit.m1)} this month.`, ...hit.why, `Position lean: ${hit.lean}. ${hit.leanWhy}`],
+        list: [...hit.signals.map((s) => `${s.label}: ${s.text}`), ...(hit.headlines[0] ? [`Latest headline: "${hit.headlines[0].title}" (${hit.headlines[0].publisher})`] : [])],
+      };
+    }
+    const m = (re: RegExp) => re.test(text);
+    const macroFor = (re: RegExp) => macro.filter((r) => re.test(r.n.toLowerCase()));
+    const macroLine = (r: MacroRow) => r.kind === "yield"
+      ? `${r.n}: ${r.level?.toFixed(2)}%, ${r.d1?.toFixed(0)} bp today, ${r.w1?.toFixed(0)} bp this week, ${r.m1?.toFixed(0)} bp this month. ${r.why}`
+      : `${r.n}: ${r.level?.toLocaleString("en-US", { maximumFractionDigits: 2 })}, ${pct(r.d1)} today, ${pct(r.w1)} this week, ${pct(r.m1)} this month. ${r.why}`;
+    if (m(/oil|crude|energy price/)) return { q: raw, a: macroFor(/crude/).map(macroLine) };
+    if (m(/dollar|currency/)) return { q: raw, a: macroFor(/dollar/).map(macroLine) };
+    if (m(/gold/)) return { q: raw, a: macroFor(/gold/).map(macroLine) };
+    if (m(/copper/)) return { q: raw, a: macroFor(/copper/).map(macroLine) };
+    if (m(/bitcoin|crypto/)) return { q: raw, a: macroFor(/bitcoin/).map(macroLine) };
+    if (m(/vix|volatil|fear/) && !m(/portfolio|risk/)) return { q: raw, a: macroFor(/vix/).map(macroLine) };
+    const pick = (frag: string) => { const x = findQA(frag); return x ? { ...x, q: raw } : null; };
+    const routes: [RegExp, string][] = [
+      [/(fed|federal reserve|rate (cut|hike)|interest rate decision|fomc)/, "next fed decision"],
+      [/(rate|yield|bond|treasur|10.?year)/, "interest rates have to do"],
+      [/(yield curve|2s10s|inversion|inverted)/, "yield curve"],
+      [/(earning|report(s|ing)? soon)/, "earnings soon"],
+      [/(calendar|economic|jobs report|cpi|inflation|payroll|this week|upcoming)/, "economic news"],
+      [/(riskiest|risk|volatil|drawdown|sharpe)/, "riskiest"],
+      [/(beta)/, "what is beta"],
+      [/(diversif|correlat)/, "diversified"],
+      [/(compare|benchmark|s&p|spy|beat|winning|leaderboard|ahead|behind)/, "compare with the s&p"],
+      [/(since (the )?start|inception|all time|overall)/, "since the start"],
+      [/(best|worst|top|biggest|gainer|loser|up the most|down the most)/, "best and worst today"],
+      [/(sector|industry)/, "sectors led"],
+      [/(macro|big picture|economy)/, "big macro trends"],
+      [/(growth|value)/, "growth or value"],
+      [/(micro|company.specific)/, "macro or a micro"],
+      [/(week)/, "best and worst week"],
+      [/(contribut)/, "contribution"],
+      [/(financial statement|10-k|10k|annual report|sec filing)/, "find a company"],
+      [/(crossword|puzzle|game)/, "crossword work"],
+      [/(today|happen|market do|recap|summary)/, "happened in the market"],
+    ];
+    for (const [re, frag] of routes) if (re.test(text)) { const x = pick(frag); if (x) return x; }
+    return { q: raw, a: ["I don't have a built-in answer for that one yet.", "Try a ticker or company (\"Why did NVDA move?\", \"Should I hold Crocs?\"), or a topic: oil, the dollar, the Fed, interest rates, earnings, risk, sectors, or how our portfolios compare with the S&P 500."] };
+  };
+
+  const askFree = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const raw = draft.trim();
+    if (!raw) return;
+    setDraft("");
+    setMsgs((x) => [...x, { role: "you", qa: { q: raw, a: [] } }]);
+    setTyping(true);
+    let qa: QA | null = null;
+    if (ai) {
+      try {
+        const r = await fetch("/api/ask", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ q: raw }) });
+        if (r.ok) { const j = await r.json(); if (j.answer) qa = { q: raw, a: String(j.answer).split(/\n+/).filter(Boolean) }; }
+      } catch {}
+    }
+    if (!qa) { await new Promise((res) => setTimeout(res, 450)); qa = localAnswer(raw); }
+    setTyping(false);
+    setMsgs((x) => [...x, { role: "jack", qa: qa! }]);
+  };
+
   const askedSet = new Set(msgs.filter((m) => m.role === "you").map((m) => m.qa.q));
   const remaining = topic.qs.filter((x) => !askedSet.has(x.q));
 
@@ -118,9 +195,13 @@ export default function AskJack({ topics, asOf }: { topics: Topic[]; asOf: strin
               </div>
             )}
           </div>
+          <form className="aj-ask" onSubmit={askFree}>
+            <input value={draft} onChange={(e) => setDraft(e.target.value)} placeholder="Ask Jack anything about the portfolios…" aria-label="Ask Jack a question" maxLength={500} />
+            <button type="submit" disabled={!draft.trim() || typing}>Ask</button>
+          </form>
           <footer className="aj-foot">
             <button className="aj-reset" onClick={() => setMsgs([])}>↺ Start over</button>
-            <p>Built-in helper, not AI. No AI usage charges. Answers use the displayed data when you tap a question; prices may be delayed.</p>
+            <p>{ai ? "Typed questions are answered by Claude AI using the data on this site. Tap-to-ask buttons use built-in calculations. Prices may be delayed; not investment advice." : "Built-in helper, not AI. No AI usage charges. Answers use the displayed data; prices may be delayed. Not investment advice."}</p>
           </footer>
         </div>
       )}

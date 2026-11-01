@@ -160,3 +160,27 @@ export function buildAskJack(d: {
     { id: "puzzles", label: "Puzzles", qs: puzzles },
   ];
 }
+
+// ── Compact text snapshot of the site's data, used as context for AI answers ──
+export function buildAskContext(d: any): string {
+  const L: string[] = [];
+  const p = (v?: number, n = 2) => (v == null || !isFinite(v) ? "n/a" : `${v > 0 ? "+" : ""}${v.toFixed(n)}%`);
+  const q = d.quotes as Record<string, Quote>;
+  L.push(`As of: ${new Date().toISOString().slice(0, 10)}. Benchmark ${BENCHMARK} today ${p(q[BENCHMARK]?.changePct)}.`);
+  L.push(`Indices today: S&P 500 ${p(q["^GSPC"]?.changePct)}, Nasdaq 100 ${p(q["^NDX"]?.changePct)}, Russell 2000 ${p(q["^RUT"]?.changePct)}, VIX ${q["^VIX"]?.price?.toFixed(1) ?? "n/a"}.`);
+  L.push("MACRO (level, 1 day, 1 week, 1 month): " + d.trends.macro.map((m: any) => `${m.n} ${m.level?.toFixed(2) ?? "n/a"} (${m.kind === "yield" ? `${m.d1?.toFixed(0)}bp/${m.w1?.toFixed(0)}bp/${m.m1?.toFixed(0)}bp` : `${p(m.d1, 1)}/${p(m.w1, 1)}/${p(m.m1, 1)}`})`).join("; "));
+  L.push("STYLE 1-month: " + d.trends.styles.map((s: any) => `${s.n} ${s.m1?.toFixed(1)} pts`).join("; "));
+  L.push("SECTORS 1-month: " + d.trends.sectors1m.map((s: any) => `${s.n} ${p(s.m1, 1)}`).join(", "));
+  if (d.econ?.nextFed) L.push(`Next Fed decision: ${d.econ.nextFed}. Upcoming releases: ` + d.econ.ahead.slice(0, 8).map((e: any) => `${e.date} ${e.time} ${e.name} (forecast ${e.consensus ?? "n/a"})`).join("; "));
+  for (const r of d.results as PortfolioResult[]) {
+    L.push(`PORTFOLIO ${r.p.name}: value $${r.value.toFixed(0)}, today ${p(r.dayPct)}, since ${r.p.startDate} ${p(r.sincePct)} vs SPY ${p(r.benchSincePct)}.`);
+    const risk = d.risk.portfolios.find((x: any) => x.id === r.p.id);
+    if (risk) L.push(`  Risk (${d.risk.days}d): vol ${risk.stats.vol?.toFixed(1)}%, beta ${risk.stats.beta?.toFixed(2)}, max drawdown ${risk.stats.maxDD?.toFixed(1)}%, Sharpe ${risk.stats.sharpe?.toFixed(2)}, avg correlation ${risk.stats.avgCorr?.toFixed(2)}.`);
+    L.push("  Holdings: " + r.positions.map((h) => `${h.symbol} wt ${h.weight.toFixed(1)}% today ${p(h.dayPct)} since start ${p(h.sincePct)}`).join("; "));
+  }
+  L.push("DESK NOTES per stock (why it moved; position lean; signals; earnings; latest headlines):");
+  for (const n of Object.values(d.desk as Record<string, any>)) {
+    L.push(`- ${n.s} (${n.name}; held by ${n.owners.join("/")}; sector ${n.sector.name}): 1w ${p(n.w1, 1)}, 1m ${p(n.m1, 1)}. ${n.why.join(" ")} Lean: ${n.lean}. ${n.signals.map((s: any) => `${s.label}: ${s.text}`).join("; ")}.${n.earnings ? ` Earnings ${n.earnings}.` : ""}${n.headlines.length ? ` Headlines: ${n.headlines.map((h: any) => `"${h.title}" (${h.publisher})`).join("; ")}` : ""}`);
+  }
+  return L.join("\n");
+}
