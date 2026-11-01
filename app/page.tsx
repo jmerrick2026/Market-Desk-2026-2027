@@ -129,7 +129,7 @@ export default async function FrontPage() {
       <main className="wrap">
         {/* ── Cover ── */}
         <section data-sec="A" className="cover" aria-label="Today's cover story">
-          <PhotoBand src={PHOTOS.nyse.src} credit={PHOTOS.nyse.credit} creditUrl={PHOTOS.nyse.page} height={360} pos="center 30%">
+          <PhotoBand src={PHOTOS.nyse.src} credit={PHOTOS.nyse.credit} creditUrl={PHOTOS.nyse.page} height={300} pos="center 30%">
             <p className="cover-kicker">{session !== "latest" ? session : "Today"} · The Market in One Line</p>
             <h2 className="cover-hl"><span>{cover.a}</span> <span className="red">{cover.b}</span></h2>
             <p className="cover-deck">{s.headline}</p>
@@ -142,31 +142,47 @@ export default async function FrontPage() {
           </PhotoBand>
         </section>
 
-        {/* ── Video of the day, right under the cover ── */}
-        {VIDEOS[0] && (() => {
-          const v = VIDEOS[0]; const e = toEmbed(v.url);
-          return (
-            <section className="lead-video" data-sec="A" data-slide aria-label="Video of the day">
-              <div className="frame">
-                {e?.kind === "iframe" ? (
-                  <iframe src={e.src} title={v.title} allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen />
-                ) : e?.kind === "file" ? (
-                  <video src={e.src} controls preload="metadata" />
-                ) : (
-                  <a href={v.url} target="_blank" rel="noreferrer">Open video</a>
-                )}
-              </div>
-              <div className="lv-text">
-                <p className="kicker">Video of the Day</p>
-                <h3>{v.title}</h3>
-                {v.note && <p className="lv-src">{v.note}</p>}
-                <p className="lv-prompt"><b>As you watch:</b> name the cause, the mechanism, and one number. Then check today&apos;s tape below to see if the story still holds.</p>
-                <p className="lv-more"><a href="#watch">{VIDEOS.length > 1 ? `${VIDEOS.length - 1} more in` : "More in"} Section G, Watch ›</a></p>
-              </div>
-            </section>
-          );
-        })()}
+        {/* ── Front page ── */}
+        <div data-sec="A" className="front" id="front" data-slide>
+          <article className="lede story">
+            <p className="kicker">The Session</p>
+            <h1>{s.headline}</h1>
+            <p className="deck">A desk read of the tape, written from the closing numbers.</p>
+            <LeadArt bars={spxBars} title="S&P 500 · last three months" />
+            <div className="cols">{s.body.map((b, i) => <p key={i}>{b}</p>)}</div>
+            <p className="jump"><a href="#markets">Full market tables, Section C, Page 1 ›</a></p>
+            <nav className="index-box" aria-label="Inside today's edition">
+              <p className="kicker">Inside</p>
+              <ul>
+                {[["Macro Trends", "#macro", "B1"], ["The Week Ahead", "#week", "B2"], ["Markets", "#markets", "C1"], ["Micro Trends", "#micro", "C2"], ["Portfolios", "#portfolios", "D1"], ["Risk", "#risk", "D2"], ["The Quant Lab", "#quant", "E1"], ["Stock Pages", "#stocks", "F1"], ["Company Reports", "#reports", "F2"], ["Giving Back", "#giving", "G3"], ["Puzzles & Games", "#puzzles", "H1"]].map(([n, h, pg]) => (
+                  <li key={h}><a href={h}>{n}</a><span className="dots" /><span>{pg}</span></li>
+                ))}
+              </ul>
+            </nav>
+          </article>
+          <aside className="huddle">
+            {VIDEOS[0] && (() => {
+              const v = VIDEOS[0]; const e = toEmbed(v.url);
+              return (
+                <figure className="rail-video">
+                  <p className="kicker">Video of the Day</p>
+                  <div className="frame">
+                    {e?.kind === "iframe" ? <iframe src={e.src} title={v.title} allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen />
+                      : e?.kind === "file" ? <video src={e.src} controls preload="metadata" />
+                      : <a href={v.url} target="_blank" rel="noreferrer">Open video</a>}
+                  </div>
+                  <figcaption><b>{v.title}</b>{v.note && <span> · {v.note}</span>}<a href="#watch">More in Watch, G2 ›</a></figcaption>
+                </figure>
+              );
+            })()}
+            <MarketWeather vix={q["^VIX"]?.price} spx={q["^GSPC"]?.changePct} />
+            <p className="kicker">Huddle</p>
+            <h3>Three Questions to Open Class</h3>
+            <ol>{prompts.map((p, i) => <li key={i}>{p}</li>)}</ol>
+          </aside>
+        </div>
 
+        {/* ── Macro trends ── */}
         {/* ── 15-minute recap ── */}
         <section data-sec="A" id="recap" className="recap" data-slide data-brief>
           <div className="recap-head">
@@ -210,33 +226,6 @@ export default async function FrontPage() {
           </div>
         </section>
 
-        {/* ── Front page ── */}
-        <div data-sec="A" className="front" id="front" data-slide>
-          <article className="lede story">
-            <p className="kicker">The Session</p>
-            <h1>{s.headline}</h1>
-            <p className="deck">A desk read of the tape, written from the closing numbers.</p>
-            <LeadArt bars={spxBars} title="S&P 500 · last three months" />
-            <div className="cols">{s.body.map((b, i) => <p key={i}>{b}</p>)}</div>
-            <p className="jump"><a href="#markets">Full market tables, Section C, Page 1 ›</a></p>
-          </article>
-          <aside className="huddle">
-            <MarketWeather vix={q["^VIX"]?.price} spx={q["^GSPC"]?.changePct} />
-            <p className="kicker">Huddle</p>
-            <h3>Three Questions to Open Class</h3>
-            <ol>{prompts.map((p, i) => <li key={i}>{p}</li>)}</ol>
-            <nav className="index-box" aria-label="Inside today's edition">
-              <p className="kicker">Inside</p>
-              <ul>
-                {[["Macro Trends", "#macro", "B1"], ["The Week Ahead", "#week", "B2"], ["Markets", "#markets", "C1"], ["Micro Trends", "#micro", "C2"], ["Portfolios", "#portfolios", "D1"], ["Risk", "#risk", "D2"], ["The Quant Lab", "#quant", "E1"], ["Stock Pages", "#stocks", "F1"], ["Company Reports", "#reports", "F2"], ["Giving Back", "#giving", "G3"], ["Puzzles & Games", "#puzzles", "H1"]].map(([n, h, pg]) => (
-                  <li key={h}><a href={h}>{n}</a><span className="dots" /><span>{pg}</span></li>
-                ))}
-              </ul>
-            </nav>
-          </aside>
-        </div>
-
-        {/* ── Macro trends ── */}
         <PageTurn sec="A" />
         <section data-sec="B" id="macro" data-slide data-brief>
           <PhotoBand src={PHOTOS.oil.src} credit={PHOTOS.oil.credit} creditUrl={PHOTOS.oil.page} caption="Oil, rates, and the dollar move every stock at once." height={200} pos="center 60%" />
