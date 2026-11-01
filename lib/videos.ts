@@ -9,7 +9,9 @@
 
 export type Video = { url: string; title: string; note?: string };
 
-export const VIDEOS: Video[] = [];
+export const VIDEOS: Video[] = [
+  { url: "https://www.youtube.com/watch?v=kId19sUYuic", title: "Market drop wipes out more than a trillion dollars in value", note: "NBC News" },
+];
 
 /** Turn a pasted link into something a page can embed. */
 export function toEmbed(url: string): { kind: "iframe" | "file"; src: string } | null {
