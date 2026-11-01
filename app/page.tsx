@@ -142,6 +142,31 @@ export default async function FrontPage() {
           </PhotoBand>
         </section>
 
+        {/* ── Video of the day, right under the cover ── */}
+        {VIDEOS[0] && (() => {
+          const v = VIDEOS[0]; const e = toEmbed(v.url);
+          return (
+            <section className="lead-video" data-sec="A" data-slide aria-label="Video of the day">
+              <div className="frame">
+                {e?.kind === "iframe" ? (
+                  <iframe src={e.src} title={v.title} allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen />
+                ) : e?.kind === "file" ? (
+                  <video src={e.src} controls preload="metadata" />
+                ) : (
+                  <a href={v.url} target="_blank" rel="noreferrer">Open video</a>
+                )}
+              </div>
+              <div className="lv-text">
+                <p className="kicker">Video of the Day</p>
+                <h3>{v.title}</h3>
+                {v.note && <p className="lv-src">{v.note}</p>}
+                <p className="lv-prompt"><b>As you watch:</b> name the cause, the mechanism, and one number. Then check today&apos;s tape below to see if the story still holds.</p>
+                <p className="lv-more"><a href="#watch">{VIDEOS.length > 1 ? `${VIDEOS.length - 1} more in` : "More in"} Section G, Watch ›</a></p>
+              </div>
+            </section>
+          );
+        })()}
+
         {/* ── 15-minute recap ── */}
         <section data-sec="A" id="recap" className="recap" data-slide data-brief>
           <div className="recap-head">
