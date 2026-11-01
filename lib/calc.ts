@@ -3,6 +3,7 @@ import { Bar, Quote, closeOnOrBefore, getCurve, getHistories, getQuotes, getNews
 import { buildDeskNotes } from "./stockdesk";
 import { getEconCalendar } from "./econ";
 import { computeRisk } from "./risk";
+import { computeQuant } from "./quant";
 
 export type Position = {
   symbol: string;
@@ -217,6 +218,7 @@ export async function loadAll() {
     quotes, curve, econ, results,
     spxBars: (hist["^GSPC"] ?? []).filter((b) => b.date >= daysAgo(92)),
     risk: computeRisk(results, hist, BENCHMARK, quotes["^IRX"]?.price ?? 4),
+    quant: computeQuant(results, hist, BENCHMARK, quotes["^IRX"]?.price ?? 4),
     trends: computeTrends(quotes, hist),
     micro: computeMicro(quotes, hist),
     desk: buildDeskNotes(quotes, hist, news),

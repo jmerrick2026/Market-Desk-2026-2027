@@ -8,8 +8,11 @@ import UpOrDown from "../components/UpOrDown";
 import AskJack from "../components/AskJack";
 import StockDesk from "../components/StockDesk";
 import Simulator from "../components/Simulator";
+import QuantLab from "../components/QuantLab";
+import Sections, { PageTurn } from "../components/Sections";
 import { LeadArt, MarketWeather, SectionArt, PhotoBand } from "../components/art";
 import { PHOTOS } from "../lib/photos";
+import { GIVING } from "../lib/giving";
 import { VIDEOS, toEmbed } from "../lib/videos";
 import { buildAskJack } from "../lib/askjack";
 import { closing, curveStats, huddle, macroMicroQuestion, macroRead, microRead, setup, upcomingEarnings } from "../lib/prompts";
@@ -58,7 +61,7 @@ function Banner({ title, sub, art, page }: { title: string; sub: string; art?: s
 }
 
 export default async function FrontPage() {
-  const { quotes: q, curve, results, trends, micro, risk, econ, spxBars, desk, sim } = await loadAll();
+  const { quotes: q, curve, results, trends, micro, risk, econ, spxBars, desk, sim, quant } = await loadAll();
   const s = setup(q, curve);
   const prompts = huddle(q, curve);
   const cs = curveStats(curve);
@@ -117,7 +120,7 @@ export default async function FrontPage() {
     : spxPct >= 1 ? { a: W, b: verb(W, "Rallies", "Rally") }
     : { a: W, b: verb(W, "Leads", "Lead") };
   const asOf = mt ? new Date(mt).toLocaleDateString("en-CA", { timeZone: "America/New_York" }) : etDate;
-  const askTopics = buildAskJack({ q, curve, results, trends, micro, risk, econ, sectors });
+  const askTopics = buildAskJack({ q, curve, results, trends, micro, risk, econ, sectors, quant });
   const session = mt ? new Date(mt).toLocaleDateString("en-US", { timeZone: "America/New_York", weekday: "long", month: "short", day: "numeric" }) : "latest";
 
   return (
@@ -125,8 +128,8 @@ export default async function FrontPage() {
       <Header />
       <main className="wrap">
         {/* ── Cover ── */}
-        <section className="cover" aria-label="Today's cover story">
-          <PhotoBand src={PHOTOS.nyse.src} credit={PHOTOS.nyse.credit} creditUrl={PHOTOS.nyse.page} height={470} pos="center 30%">
+        <section data-sec="A" className="cover" aria-label="Today's cover story">
+          <PhotoBand src={PHOTOS.nyse.src} credit={PHOTOS.nyse.credit} creditUrl={PHOTOS.nyse.page} height={360} pos="center 30%">
             <p className="cover-kicker">{session !== "latest" ? session : "Today"} · The Market in One Line</p>
             <h2 className="cover-hl"><span>{cover.a}</span> <span className="red">{cover.b}</span></h2>
             <p className="cover-deck">{s.headline}</p>
@@ -140,7 +143,7 @@ export default async function FrontPage() {
         </section>
 
         {/* ── 15-minute recap ── */}
-        <section id="recap" className="recap" data-slide data-brief>
+        <section data-sec="A" id="recap" className="recap" data-slide data-brief>
           <div className="recap-head">
             <SectionArt kind="recap" />
             <p className="kicker">If you only have 15 minutes</p>
@@ -183,14 +186,14 @@ export default async function FrontPage() {
         </section>
 
         {/* ── Front page ── */}
-        <div className="front" id="front" data-slide>
+        <div data-sec="A" className="front" id="front" data-slide>
           <article className="lede story">
             <p className="kicker">The Session</p>
             <h1>{s.headline}</h1>
             <p className="deck">A desk read of the tape, written from the closing numbers.</p>
             <LeadArt bars={spxBars} title="S&P 500 · last three months" />
             <div className="cols">{s.body.map((b, i) => <p key={i}>{b}</p>)}</div>
-            <p className="jump"><a href="#markets">Full market tables, Section B, Page 1 ›</a></p>
+            <p className="jump"><a href="#markets">Full market tables, Section C, Page 1 ›</a></p>
           </article>
           <aside className="huddle">
             <MarketWeather vix={q["^VIX"]?.price} spx={q["^GSPC"]?.changePct} />
@@ -200,7 +203,7 @@ export default async function FrontPage() {
             <nav className="index-box" aria-label="Inside today's edition">
               <p className="kicker">Inside</p>
               <ul>
-                {[["Macro Trends", "#macro", "A2"], ["The Week Ahead", "#week", "A3"], ["Markets", "#markets", "B1"], ["Micro Trends", "#micro", "B2"], ["Portfolios", "#portfolios", "C1"], ["Risk", "#risk", "C2"], ["Stock Pages", "#stocks", "C3"], ["Company Reports", "#reports", "C4"], ["Closing Questions", "#closing", "D1"], ["Puzzles", "#puzzles", "D3"]].map(([n, h, pg]) => (
+                {[["Macro Trends", "#macro", "B1"], ["The Week Ahead", "#week", "B2"], ["Markets", "#markets", "C1"], ["Micro Trends", "#micro", "C2"], ["Portfolios", "#portfolios", "D1"], ["Risk", "#risk", "D2"], ["The Quant Lab", "#quant", "E1"], ["Stock Pages", "#stocks", "F1"], ["Company Reports", "#reports", "F2"], ["Giving Back", "#giving", "G3"], ["Puzzles & Games", "#puzzles", "H1"]].map(([n, h, pg]) => (
                   <li key={h}><a href={h}>{n}</a><span className="dots" /><span>{pg}</span></li>
                 ))}
               </ul>
@@ -209,9 +212,10 @@ export default async function FrontPage() {
         </div>
 
         {/* ── Macro trends ── */}
-        <section id="macro" data-slide data-brief>
+        <PageTurn sec="A" />
+        <section data-sec="B" id="macro" data-slide data-brief>
           <PhotoBand src={PHOTOS.oil.src} credit={PHOTOS.oil.credit} creditUrl={PHOTOS.oil.page} caption="Oil, rates, and the dollar move every stock at once." height={200} pos="center 60%" />
-          <Banner art="globe" page="A2" title="Macro Trends" sub="The big forces that move every stock at once: rates, currencies, commodities, and fear." />
+          <Banner art="globe" page="B1" title="Macro Trends" sub="The big forces that move every stock at once: rates, currencies, commodities, and fear." />
           <div className="macro-grid">
             <div className="cols-narrow">{macroLines.map((l, i) => <p key={i}>{l}</p>)}</div>
             <div className="scroll">
@@ -235,7 +239,7 @@ export default async function FrontPage() {
           <p className="muted small">Yields show changes in <Term t="basis point">basis points</Term>; the VIX shows changes in index points; everything else is percent.</p>
         </section>
 
-        <section className="card" data-slide>
+        <section data-sec="B" className="card" data-slide>
           <div className="grid2 tight">
             <div>
               <h2>Style &amp; <Term t="breadth" /> <span className="muted small">who is winning, relative to whom</span></h2>
@@ -266,9 +270,9 @@ export default async function FrontPage() {
         </section>
 
         {/* ── Economic calendar ── */}
-        <section id="week" data-slide>
+        <section data-sec="B" id="week" data-slide>
           <PhotoBand src={PHOTOS.fed.src} credit={PHOTOS.fed.credit} creditUrl={PHOTOS.fed.page} caption="The Federal Reserve's Eccles Building, Washington." height={200} pos="center 40%" />
-          <Banner art="columns" page="A3" title="The Week Ahead" sub="Scheduled economic releases that can move the whole market. Times are Eastern." />
+          <Banner art="columns" page="B2" title="The Week Ahead" sub="Scheduled economic releases that can move the whole market. Times are Eastern." />
           <div className="week-grid">
             <div className="fedbox">
               <p className="kicker">Next Fed decision</p>
@@ -325,9 +329,10 @@ export default async function FrontPage() {
         </section>
 
         {/* ── Markets ── */}
-        <section id="markets" data-slide>
+        <PageTurn sec="B" />
+        <section data-sec="C" id="markets" data-slide>
           <PhotoBand src={PHOTOS.floor.src} credit={PHOTOS.floor.credit} creditUrl={PHOTOS.floor.page} caption="The trading floor of the New York Stock Exchange." height={200} pos="center 45%" />
-          <Banner art="candles" page="B1" title="Markets" sub="Where the major indices closed, at home and abroad." />
+          <Banner art="candles" page="C1" title="Markets" sub="Where the major indices closed, at home and abroad." />
           <div className="grid2">
             <section className="card">
               <h2>U.S. indices</h2>
@@ -340,7 +345,7 @@ export default async function FrontPage() {
           </div>
         </section>
 
-        <section className="card" data-slide>
+        <section data-sec="C" className="card" data-slide>
           <h2><Term t="sector">Sectors</Term> <span className="muted small">S&amp;P 500 sector ETFs, today</span></h2>
           <div className="bars">
             {sectors.map((x) => (
@@ -357,7 +362,7 @@ export default async function FrontPage() {
           </div>
         </section>
 
-        <div className="grid2" data-slide>
+        <div data-sec="C" className="grid2" data-slide>
           <section className="card">
             <h2>Rates, dollar &amp; commodities <span className="muted small">via <Term t="ETF">ETFs</Term></span></h2>
             <QuoteTable rows={MARKET.macro} q={q} cols="Price" />
@@ -368,7 +373,7 @@ export default async function FrontPage() {
           </section>
         </div>
 
-        <section className="card" data-slide>
+        <section data-sec="C" className="card" data-slide>
           <h2>Treasury <Term t="yield curve" /></h2>
           {curve ? (
             <>
@@ -386,8 +391,8 @@ export default async function FrontPage() {
         </section>
 
         {/* ── Micro trends ── */}
-        <section id="micro" data-slide>
-          <Banner art="magnifier" page="B2" title="Micro Trends" sub="What individual companies in our three portfolios are doing, apart from the market." />
+        <section data-sec="C" id="micro" data-slide>
+          <Banner art="magnifier" page="C2" title="Micro Trends" sub="What individual companies in our three portfolios are doing, apart from the market." />
           <div className="micro-top">
             <div className="verdict">
               <p className="kicker">Today&apos;s verdict</p>
@@ -408,7 +413,7 @@ export default async function FrontPage() {
           </div>
         </section>
 
-        <section className="card" data-slide>
+        <section data-sec="C" className="card" data-slide>
           <div className="three">
             <div>
               <h3 className="sub">Near a <Term t="52-week high" /></h3>
@@ -427,8 +432,9 @@ export default async function FrontPage() {
         </section>
 
         {/* ── Portfolios ── */}
-        <section id="portfolios" data-slide>
-          <Banner art="briefcase" page="C1" title="Portfolios" sub={`Three model portfolios measured against the S&P 500 (${BENCHMARK}), share-weighted and including cash. Click any ticker for its desk note.`} />
+        <PageTurn sec="C" />
+        <section data-sec="D" id="portfolios" data-slide>
+          <Banner art="briefcase" page="D1" title="Portfolios" sub={`Three model portfolios measured against the S&P 500 (${BENCHMARK}), share-weighted and including cash. Click any ticker for its desk note.`} />
           <div className="grid2 tight">
             <div>
               <h2>Leaderboard</h2>
@@ -470,7 +476,7 @@ export default async function FrontPage() {
           </div>
         </section>
 
-        <section id="map" className="card" data-slide data-brief>
+        <section data-sec="D" id="map" className="card" data-slide data-brief>
           <h2>Holdings Map <span className="muted small">each block is sized by its weight in the portfolio and shaded by today&apos;s move</span></h2>
           <div className="maps">
             {results.map((r) => (
@@ -483,8 +489,8 @@ export default async function FrontPage() {
           <p className="legend"><span className="sw" style={{ background: "rgba(163,39,29,.93)" }} /> −3% or worse <span className="sw" style={{ background: "rgba(163,39,29,.35)" }} /> <span className="sw" style={{ background: "rgba(31,107,58,.35)" }} /> <span className="sw" style={{ background: "rgba(31,107,58,.93)" }} /> +3% or better</p>
         </section>
 
-        <section id="risk" data-slide>
-          <Banner art="scale" page="C2" title="Risk" sub={`How bumpy each portfolio's ride is, using today's holdings over the last ${risk.days} trading days.`} />
+        <section data-sec="D" id="risk" data-slide>
+          <Banner art="scale" page="D2" title="Risk" sub={`How bumpy each portfolio's ride is, using today's holdings over the last ${risk.days} trading days.`} />
           <div className="scroll">
             <table className="risk">
               <thead>
@@ -533,7 +539,7 @@ export default async function FrontPage() {
           <p className="muted small">Sharpe ratio uses the current 3-month T-bill yield as the risk-free rate. These are backward-looking measures, not forecasts.</p>
         </section>
 
-        <section className="card" data-slide>
+        <section data-sec="D" className="card" data-slide>
           <h2>Which holdings move together? <span className="muted small"><Term t="correlation" /> of daily returns, last {risk.days} trading days</span></h2>
           <div className="heats">
             {risk.portfolios.map((p) => (
@@ -547,7 +553,7 @@ export default async function FrontPage() {
         </section>
 
         {results.map((r) => (
-          <section className="card port" id={r.p.id} key={r.p.id} data-slide>
+          <section data-sec="D" className="card port" id={r.p.id} key={r.p.id} data-slide>
             <div className="porthead">
               <div>
                 <h2>{r.p.name}</h2>
@@ -597,8 +603,23 @@ export default async function FrontPage() {
         ))}
 
         {/* ── Stock pages (agate listings) ── */}
-        <section id="stocks" data-slide>
-          <Banner art="candles" page="C3" title="The Stock Pages" sub="Every holding in agate type, as it would appear in the paper's financial section." />
+        <PageTurn sec="D" />
+        {quant && <>
+        <section id="quant" data-sec="E" data-slide>
+          <Banner art="scale" page="E1" title="The Quant Lab" sub="The formulas professionals use, run live on our three portfolios. Pick a portfolio once; every panel follows." />
+          <QuantLab q={quant} part="math" />
+        </section>
+        <section className="card" data-sec="E" data-slide>
+          <h2>Risk, Simulated <span className="muted small">Monte Carlo and Value at Risk</span></h2>
+          <QuantLab q={quant} part="risk" />
+        </section>
+        <section className="card" data-sec="E" data-slide>
+          <QuantLab q={quant} part="frontier" />
+        </section>
+        </>}
+        <PageTurn sec="E" />
+        <section data-sec="F" id="stocks" data-slide>
+          <Banner art="candles" page="F1" title="The Stock Pages" sub="Every holding in agate type, as it would appear in the paper's financial section." />
           <div className="agate">
             {(() => {
               const rows = [...allPos].sort((a, b) => a.symbol.localeCompare(b.symbol));
@@ -630,8 +651,8 @@ export default async function FrontPage() {
         </section>
 
         {/* ── Company reports directory ── */}
-        <section id="reports" data-slide>
-          <Banner art="document" page="C4" title="Company Reports" sub="Primary sources for every company we own. Start with the annual report's Item 1 (the business) and Item 7 (management's discussion)." />
+        <section data-sec="F" id="reports" data-slide>
+          <Banner art="document" page="F2" title="Company Reports" sub="Primary sources for every company we own. Start with the annual report's Item 1 (the business) and Item 7 (management's discussion)." />
           <div className="scroll">
             <table className="directory">
               <thead>
@@ -667,8 +688,9 @@ export default async function FrontPage() {
         </section>
 
         {/* ── Closing questions ── */}
-        <section id="closing" data-slide>
-          <Banner art="quill" page="D1" title="Closing Questions" sub="End-of-class prompts from today's moves. Answers should name a cause, a mechanism, and a number." />
+        <PageTurn sec="F" />
+        <section data-sec="G" id="closing" data-slide>
+          <Banner art="quill" page="G1" title="Closing Questions" sub="End-of-class prompts from today's moves. Answers should name a cause, a mechanism, and a number." />
           <div className="cq-grid">
             {cq.map((sec) => (
               <div className="cq" key={sec.title}>
@@ -679,8 +701,8 @@ export default async function FrontPage() {
           </div>
         </section>
         {/* ── Video ── */}
-        <section id="watch" data-slide>
-          <Banner art="film" page="D2" title="Watch" sub="Videos picked for this week's lessons." />
+        <section data-sec="G" id="watch" data-slide>
+          <Banner art="film" page="G2" title="Watch" sub="Videos picked for this week's lessons." />
           {VIDEOS.length ? (
             <div className="videos">
               {VIDEOS.map((v) => {
@@ -707,24 +729,46 @@ export default async function FrontPage() {
         </section>
 
         {/* ── Puzzles & games ── */}
-        <section id="puzzles" data-slide>
-          <Banner art="grid" page="D3" title="Puzzles & Games" sub="The Daily Crossword: finance vocabulary, with a few answers pulled from today's market. A new grid every day." />
+        <section data-sec="G" id="giving" data-slide>
+          <Banner art="quill" page="G3" title="Giving Back" sub="Our school asks us to give back more than we take. Here is what ten of the companies we own are doing to give back, each claim linked to its source." />
+          <div className="give-grid">
+            {GIVING.map((g) => {
+              const owners = results.filter((r) => r.positions.some((x) => x.symbol === g.s)).map((r) => r.p.name.replace(" Portfolio", ""));
+              return (
+                <article className="give" key={g.s}>
+                  <p className="give-kind">{g.kind}</p>
+                  <h3><button className="tick" data-stock={g.s}>{g.s}</button> {g.name}</h3>
+                  <p className="give-stat"><b>{g.stat}</b> <span>{g.statLabel}</span></p>
+                  <p className="give-hl">{g.hl}</p>
+                  <p className="give-body">{g.body}</p>
+                  <p className="give-foot">{owners.length ? <>Held in: {owners.join(", ")}</> : null}{g.src.map((x) => <a key={x.u} href={x.u} target="_blank" rel="noopener noreferrer">{x.t} ↗</a>)}</p>
+                </article>
+              );
+            })}
+          </div>
+          <p className="give-q"><b>Discuss:</b> Does giving back help a stock or hurt it? A company that spends on purpose is spending shareholders&apos; money, but it may earn loyalty, talent and goodwill in return. Pick one company above and argue both sides with a number.</p>
+        </section>
+        <PageTurn sec="G" />
+        <section data-sec="H" id="puzzles" data-slide>
+          <Banner art="grid" page="H1" title="Puzzles & Games" sub="The Daily Crossword: finance vocabulary, with a few answers pulled from today's market. A new grid every day." />
           <Crossword rows={puzzle.rows} cols={puzzle.cols} code={code} nums={puzzle.nums} words={xwWords} puzzleId={etDate} />
         </section>
 
-        <section className="card" data-slide data-brief>
+        <section data-sec="H" className="card" data-slide data-brief>
           <h2>Up or Down? <span className="muted small">six of our holdings, a new set each day</span></h2>
           <p className="deck-sm">Did each stock rise or fall in the {session} session? Make your call, then see the answer.</p>
           <UpOrDown items={uodItems} session={session} />
         </section>
 
-        <section className="card" id="simulator" data-slide>
+        <section data-sec="H" className="card" id="simulator" data-slide>
           <h2>The 20-Day Trading Challenge <span className="muted small">a simulator built on real prices</span></h2>
           <p className="deck-sm">Start with $10,000, trade eight of our holdings through 20 real trading days, and see if you can beat the S&amp;P 500.</p>
           <Simulator data={sim} />
         </section>
+        <PageTurn sec="H" />
       </main>
       <Footer />
+      <Sections />
       <AskJack topics={askTopics} asOf={asOf} desk={desk} macro={trends.macro.map((m) => ({ s: m.s, n: m.n, kind: m.kind, level: m.level, d1: m.d1, w1: m.w1, m1: m.m1, why: m.why }))} ai={!!process.env.ANTHROPIC_API_KEY} />
       <StockDesk notes={desk} />
     </div>

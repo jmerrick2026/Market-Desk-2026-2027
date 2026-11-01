@@ -1,3 +1,5 @@
+import type { Quant } from "./quant";
+import { GIVING } from "./giving";
 // Ask Jack: built-in, rule-based answers computed from the data on the page. No AI calls.
 import type { PortfolioResult, Trends, Micro } from "./calc";
 import type { Risk } from "./risk";
@@ -15,7 +17,7 @@ const day = (d: string) => new Date(d + "T12:00:00Z").toLocaleDateString("en-US"
 
 export function buildAskJack(d: {
   q: Record<string, Quote>; curve: Curve | null; results: PortfolioResult[]; trends: Trends; micro: Micro; risk: Risk; econ: Econ;
-  sectors: { n: string; v: number }[];
+  sectors: { n: string; v: number }[]; quant?: unknown;
 }): Topic[] {
   const { q, curve, results, trends, micro, risk, econ, sectors } = d;
   const s = setup(q, curve);
@@ -148,6 +150,18 @@ export function buildAskJack(d: {
     { q: "How do I play Up or Down?", a: ["Six of our holdings, a new set each day. Guess whether each rose or fell in the latest session, then see the answer and your score."] },
   ];
 
+  const qn = d.quant as Quant | null | undefined;
+  const quantQ: QA[] = qn ? [
+    { q: "What is beta, and what is ours?", a: ["Beta is the slope of the line when you plot our daily returns against the S&P 500's: covariance divided by the market's variance. A beta of 1.2 means we have tended to move 1.2% for every 1% the market moves."], list: qn.portfolios.map((p) => `${short(p.name)}: beta ${p.beta.toFixed(2)}, R² ${p.r2.toFixed(2)}, alpha ${(p.alphaA * 100).toFixed(1)}% a year`) },
+    { q: "What does the Monte Carlo say?", a: [`We simulated 1,000 three-month futures for each portfolio using its own average return, volatility and correlation to the market. These are ranges, not forecasts.`], list: qn.portfolios.map((p) => `${short(p.name)}: ${Math.round(p.mc.probUp * 100)}% chance of a gain, ${Math.round(p.mc.probBeat * 100)}% chance of beating the S&P 500`) },
+    { q: "How much could we lose on a bad day?", a: ["Value at Risk at 95% asks: on the worst day in twenty, how much could we lose? Historical VaR uses our real past days; parametric VaR assumes a bell curve."], list: qn.portfolios.map((p) => `${short(p.name)}: historical $${Math.round(p.varHist)}, parametric $${Math.round(p.varParam)}`) },
+    { q: "What is the efficient frontier?", a: [`We tried ${qn.frontier.cloud.length.toLocaleString()} random mixes of our ${qn.frontier.nAssets} stocks. The upper-left edge of that cloud gives the most return for each level of risk. The best Sharpe mix leaned on ${qn.frontier.best.top.slice(0, 3).map(([s]) => s).join(", ")}, but it is optimized on hindsight.`] },
+  ] : [];
+  const givingQ: QA[] = [
+    { q: "Which of our companies give back?", a: ["Ten holdings have documented programs. The Giving Back page links each one to its source."], list: GIVING.map((g) => `${g.s}: ${g.hl}`) },
+    { q: "Does giving back help the stock?", a: ["It cuts both ways. Spending on purpose uses shareholders' money, but it can build loyalty, attract talent and lower regulatory risk. Veeva went further and became a public benefit corporation, so its directors must legally weigh more than profit. This is an education question, not investment advice."] },
+  ];
+
   return [
     { id: "front", label: "Today's session", qs: session },
     { id: "macro", label: "Macro trends", qs: macro },
@@ -157,6 +171,8 @@ export function buildAskJack(d: {
     { id: "portfolios", label: "Portfolio comparison", qs: portfolios },
     { id: "risk", label: "Risk", qs: riskQ },
     { id: "reports", label: "Company reports", qs: reports },
+    { id: "quant", label: "Quant Lab", qs: quantQ },
+    { id: "giving", label: "Giving Back", qs: givingQ },
     { id: "puzzles", label: "Puzzles", qs: puzzles },
   ];
 }

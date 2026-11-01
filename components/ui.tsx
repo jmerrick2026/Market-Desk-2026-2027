@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { SECTIONS } from "../lib/sections";
 import Slideshow from "./Slideshow";
 import { squarify } from "../lib/risk";
 import { GLOSSARY } from "../lib/glossary";
@@ -47,17 +48,7 @@ export function Header() {
         <span>Edited by {SITE.byline}</span>
       </div>
       <nav>
-        <a href="#front">The Session</a>
-        <a href="#macro">Macro</a>
-        <a href="#week">Week Ahead</a>
-        <a href="#markets">Markets</a>
-        <a href="#micro">Micro</a>
-        <a href="#portfolios">Portfolios</a>
-        <a href="#risk">Risk</a>
-        <a href="#reports">Reports</a>
-        <a href="#closing">Closing Questions</a>
-        <a href="#watch">Watch</a>
-        <a href="#puzzles">Games</a>
+        {SECTIONS.map(([k, n, id]) => <a key={k} href={"#" + id} data-tab={k}><i>{k}</i> {n}</a>)}
         <Slideshow title={SITE.title} date={date} />
       </nav>
       {DEMO && <p className="demo">Demo mode: prices below are simulated. Remove the DEMO setting to show live data.</p>}

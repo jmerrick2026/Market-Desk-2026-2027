@@ -10,7 +10,7 @@ type MacroRow = { s: string; n: string; kind: string; level?: number; d1?: numbe
 const SECTION_TOPIC: Record<string, string> = {
   front: "front", macro: "macro", week: "week", markets: "markets", micro: "micro",
   portfolios: "portfolios", map: "portfolios", "jack-merrick": "portfolios", class: "portfolios", dartboard: "portfolios",
-  risk: "risk", reports: "reports", closing: "front", puzzles: "puzzles",
+  risk: "risk", quant: "quant", reports: "reports", closing: "front", giving: "giving", puzzles: "puzzles",
 };
 const TINTS = ["lav", "pink", "lime"];
 
