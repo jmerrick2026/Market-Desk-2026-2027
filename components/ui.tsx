@@ -57,7 +57,7 @@ export function Header() {
         <a href="#reports">Reports</a>
         <a href="#closing">Closing Questions</a>
         <a href="#watch">Watch</a>
-        <a href="#puzzles">Puzzles</a>
+        <a href="#puzzles">Games</a>
         <Slideshow title={SITE.title} date={date} />
       </nav>
       {DEMO && <p className="demo">Demo mode: prices below are simulated. Remove the DEMO setting to show live data.</p>}

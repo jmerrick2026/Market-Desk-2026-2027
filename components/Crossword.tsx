@@ -16,23 +16,31 @@ export default function Crossword({ rows, cols, code, nums, words, puzzleId }: {
     return Array.from({ length: rows }, (_, r) => s.slice(r * cols, r * cols + cols).map((x) => (x === "." ? null : x)));
   }, [code, rows, cols]);
 
-  const key = `xword-${puzzleId}`;
+  // Progress is saved per exact grid, so a refreshed puzzle never loads mismatched answers
+  const key = useMemo(() => { let h = 0; for (const ch of code) h = (h * 31 + ch.charCodeAt(0)) >>> 0; return `xword-${puzzleId}-${h.toString(36)}`; }, [code, puzzleId]);
   const [fill, setFill] = useState<string[][]>(() => Array.from({ length: rows }, () => Array(cols).fill("")));
   const [sel, setSel] = useState<{ r: number; c: number }>(() => ({ r: words[0]?.row ?? 0, c: words[0]?.col ?? 0 }));
   const [dir, setDir] = useState<"across" | "down">(words[0]?.dir ?? "across");
   const [checked, setChecked] = useState(false);
   const [revealed, setRevealed] = useState(false);
   const [secs, setSecs] = useState(0);
+  const [loaded, setLoaded] = useState(false);
   const gridRef = useRef<HTMLDivElement>(null);
 
   // restore progress for today's puzzle (browser storage can be unavailable; ignore if so)
   useEffect(() => {
-    try { const saved = localStorage.getItem(key); if (saved) setFill(JSON.parse(saved)); } catch {}
-  }, [key]);
-  useEffect(() => { try { localStorage.setItem(key, JSON.stringify(fill)); } catch {} }, [fill, key]);
+    try {
+      const saved = JSON.parse(localStorage.getItem(key) ?? "null");
+      if (Array.isArray(saved) && saved.length === rows && saved.every((r: unknown) => Array.isArray(r) && r.length === cols)) setFill(saved);
+      else setFill(Array.from({ length: rows }, () => Array(cols).fill("")));
+    } catch {}
+    setLoaded(true);
+  }, [key, rows, cols]);
+  // Only save after the saved grid (if any) has been restored, so a reload can't wipe progress
+  useEffect(() => { if (!loaded) return; try { localStorage.setItem(key, JSON.stringify(fill)); } catch {} }, [fill, key, loaded]);
 
   const open = (r: number, c: number) => r >= 0 && c >= 0 && r < rows && c < cols && solution[r][c] != null;
-  const solved = useMemo(() => solution.every((row, r) => row.every((s, c) => s == null || fill[r][c] === s)), [fill, solution]);
+  const solved = useMemo(() => solution.every((row, r) => row.every((s, c) => s == null || fill[r]?.[c] === s)), [fill, solution]);
 
   useEffect(() => {
     if (solved || revealed) return;
@@ -72,7 +80,7 @@ export default function Crossword({ rows, cols, code, nums, words, puzzleId }: {
       if (open(nr, nc) && inActive(nr, nc)) setSel({ r: nr, c: nc });
     } else if (e.key === "Backspace") {
       e.preventDefault(); setChecked(false);
-      if (fill[sel.r][sel.c]) setCell(sel.r, sel.c, "");
+      if (fill[sel.r]?.[sel.c]) setCell(sel.r, sel.c, "");
       else { const pr = sel.r - d[0], pc = sel.c - d[1]; if (open(pr, pc)) { setSel({ r: pr, c: pc }); setCell(pr, pc, ""); } }
     } else if (e.key === "ArrowRight") { e.preventDefault(); e.stopPropagation(); setDir("across"); step(0, 1); }
     else if (e.key === "ArrowLeft") { e.preventDefault(); e.stopPropagation(); setDir("across"); step(0, -1); }
@@ -117,7 +125,7 @@ export default function Crossword({ rows, cols, code, nums, words, puzzleId }: {
         >
           {solution.map((row, r) => row.map((s, c) => {
             if (s == null) return <div key={`${r}-${c}`} className="xw-blank" />;
-            const v = fill[r][c];
+            const v = fill[r]?.[c] ?? "";
             const wrong = checked && v && v !== s;
             const cls = ["xw-cell", inActive(r, c) ? "hl" : "", sel.r === r && sel.c === c ? "sel" : "", wrong ? "wrong" : "", solved ? "done" : ""].join(" ");
             return (

@@ -220,5 +220,23 @@ export async function loadAll() {
     trends: computeTrends(quotes, hist),
     micro: computeMicro(quotes, hist),
     desk: buildDeskNotes(quotes, hist, news),
+    sim: buildSim(quotes, hist),
   };
+}
+
+// ── Trading simulator data: 8 holdings (a new set each day) + SPY, aligned daily closes ──
+export type SimData = { dates: string[]; spy: number[]; stocks: { s: string; name: string; closes: number[] }[] };
+function buildSim(quotes: Record<string, Quote>, hist: Record<string, Bar[]>): SimData {
+  const spyBars = (hist[BENCHMARK] ?? []).slice(-126);
+  const dates = spyBars.map((b) => b.date);
+  const etDate = new Date().toLocaleDateString("en-CA", { timeZone: "America/New_York" });
+  let h = 7; for (const ch of etDate) h = (Math.imul(h, 31) + ch.charCodeAt(0)) >>> 0;
+  const pool = [...new Set(PORTFOLIOS.flatMap((p) => p.holdings.map((x) => x.symbol)))]
+    .filter((s) => (hist[s]?.length ?? 0) > 60)
+    .sort((a, b) => ((Math.imul(h ^ a.charCodeAt(0), 2654435761) ^ a.length * 97) >>> 0) % 1009 - ((Math.imul(h ^ b.charCodeAt(0), 2654435761) ^ b.length * 97) >>> 0) % 1009 || a.localeCompare(b));
+  const stocks = pool.slice(0, 8).map((s) => ({
+    s, name: quotes[s]?.name ?? s,
+    closes: dates.map((d) => +(closeOnOrBefore(hist[s], d) ?? 0).toFixed(2)),
+  }));
+  return { dates, spy: spyBars.map((b) => +b.close.toFixed(2)), stocks };
 }

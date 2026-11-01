@@ -7,6 +7,7 @@ import Crossword from "../components/Crossword";
 import UpOrDown from "../components/UpOrDown";
 import AskJack from "../components/AskJack";
 import StockDesk from "../components/StockDesk";
+import Simulator from "../components/Simulator";
 import { LeadArt, MarketWeather, SectionArt } from "../components/art";
 import { VIDEOS, toEmbed } from "../lib/videos";
 import { buildAskJack } from "../lib/askjack";
@@ -56,7 +57,7 @@ function Banner({ title, sub, art, page }: { title: string; sub: string; art?: s
 }
 
 export default async function FrontPage() {
-  const { quotes: q, curve, results, trends, micro, risk, econ, spxBars, desk } = await loadAll();
+  const { quotes: q, curve, results, trends, micro, risk, econ, spxBars, desk, sim } = await loadAll();
   const s = setup(q, curve);
   const prompts = huddle(q, curve);
   const cs = curveStats(curve);
@@ -677,7 +678,7 @@ export default async function FrontPage() {
 
         {/* ── Puzzles & games ── */}
         <section id="puzzles" data-slide>
-          <Banner art="grid" page="D3" title="Puzzles" sub="The Daily Crossword: finance vocabulary, with a few answers pulled from today's market. A new grid every day." />
+          <Banner art="grid" page="D3" title="Puzzles & Games" sub="The Daily Crossword: finance vocabulary, with a few answers pulled from today's market. A new grid every day." />
           <Crossword rows={puzzle.rows} cols={puzzle.cols} code={code} nums={puzzle.nums} words={xwWords} puzzleId={etDate} />
         </section>
 
@@ -685,6 +686,12 @@ export default async function FrontPage() {
           <h2>Up or Down? <span className="muted small">six of our holdings, a new set each day</span></h2>
           <p className="deck-sm">Did each stock rise or fall in the {session} session? Make your call, then see the answer.</p>
           <UpOrDown items={uodItems} session={session} />
+        </section>
+
+        <section className="card" id="simulator" data-slide>
+          <h2>The 20-Day Trading Challenge <span className="muted small">a simulator built on real prices</span></h2>
+          <p className="deck-sm">Start with $10,000, trade eight of our holdings through 20 real trading days, and see if you can beat the S&amp;P 500.</p>
+          <Simulator data={sim} />
         </section>
       </main>
       <Footer />
