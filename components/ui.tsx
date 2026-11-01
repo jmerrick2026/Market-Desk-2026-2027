@@ -39,7 +39,7 @@ export function Header() {
     <header className="masthead wrap">
       <div className="ears">
         <span>{SITE.tagline}</span>
-        <span>Late Edition · {time} ET</span>
+        <span className="ears-r"><span className="ears-time">Late Edition · {time} ET</span><span className="ears-tools"><Slideshow title={SITE.title} date={date} /></span></span>
       </div>
       <Link href="/" className="nameplate">The {SITE.title}</Link>
       <div className="dateline">
@@ -47,9 +47,8 @@ export function Header() {
         <span>{date}</span>
         <span>Edited by {SITE.byline}</span>
       </div>
-      <nav>
+      <nav className="sec-nav">
         {SECTIONS.map(([k, n, id]) => <a key={k} href={"#" + id} data-tab={k}><i>{k}</i> {n}</a>)}
-        <Slideshow title={SITE.title} date={date} />
       </nav>
       {DEMO && <p className="demo">Demo mode: prices below are simulated. Remove the DEMO setting to show live data.</p>}
     </header>
