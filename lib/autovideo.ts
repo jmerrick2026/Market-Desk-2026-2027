@@ -28,16 +28,24 @@ async function latest(): Promise<Entry[]> {
 }
 
 /** Score each recent upload against today's story keywords and return the best match. */
+const SYN: Record<string, string[]> = {
+  technology: ["tech", "chip", "chips", "semiconductor", "nvidia", "ai", "software"],
+  energy: ["oil", "crude", "opec", "gas"], financials: ["bank", "banks", "financial"], health: ["pharma", "biotech", "drug", "healthcare"],
+  discretionary: ["retail", "consumer", "amazon", "tesla"], staples: ["consumer", "grocery", "walmart"], communication: ["media", "meta", "google", "netflix"],
+  utilities: ["utility", "power", "electricity"], industrials: ["industrial", "manufacturing", "boeing"], materials: ["gold", "copper", "metals"], estate: ["housing", "real estate", "reit", "mortgage"],
+};
+
 export async function videoOfTheDay(keywords: string[]): Promise<(Video & { auto: true; why: string }) | null> {
   const list = await latest();
   if (!list.length) return null;
   const now = Date.now();
-  const words = [...new Set(keywords.map((k) => k.toLowerCase()).filter((k) => k.length > 2))];
+  const base = keywords.map((k) => k.toLowerCase());
+  const words = [...new Set([...base, ...base.flatMap((k) => SYN[k] ?? [])].filter((k) => k.length > 1))];
   const general = ["stock market", "stocks", "market", "s&p", "dow", "nasdaq", "wall street", "fed", "earnings"];
   let best = list[0], bestScore = -1, hits: string[] = [];
   for (const e of list) {
     const t = e.title.toLowerCase();
-    const h = words.filter((w) => t.includes(w));
+    const h = words.filter((w) => new RegExp(`\\b${w.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b`).test(t));
     const ageDays = (now - Date.parse(e.published)) / 864e5;
     const score = h.length * 3 + general.filter((g) => t.includes(g)).length - Math.max(0, ageDays - 1) * 0.6;
     if (score > bestScore) { best = e; bestScore = score; hits = h; }
